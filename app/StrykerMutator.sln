@@ -11,9 +11,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "app-items", "app-items", "{
 		..\README.md = ..\README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StrykerMutator.UnitTests", "StrykerMutator.UnitTests\StrykerMutator.UnitTests.csproj", "{9FDD8602-C57A-4869-9A58-A9EADBDD1460}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StrykerMutator.UnitTests", "StrykerMutator.UnitTests\StrykerMutator.UnitTests.csproj", "{9FDD8602-C57A-4869-9A58-A9EADBDD1460}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "app", "app", "{D818DCEA-2390-4866-A778-F2E90B1D067C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{2F808BCC-6BB8-47F9-8CF7-1B0FC8212C45}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{E17AAB16-DF13-4BA0-87C2-A3FA51AF0137}"
+	ProjectSection(SolutionItems) = preProject
+		..\.github\workflows\ci-dotnet.yml = ..\.github\workflows\ci-dotnet.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -36,6 +43,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{2865115D-8DA5-492C-9BA2-2047D882D735} = {D818DCEA-2390-4866-A778-F2E90B1D067C}
 		{9FDD8602-C57A-4869-9A58-A9EADBDD1460} = {D818DCEA-2390-4866-A778-F2E90B1D067C}
+		{E17AAB16-DF13-4BA0-87C2-A3FA51AF0137} = {2F808BCC-6BB8-47F9-8CF7-1B0FC8212C45}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D34A83D3-6D27-45CD-8B26-E26E38C13B4B}
