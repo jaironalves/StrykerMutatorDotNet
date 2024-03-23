@@ -1,0 +1,15 @@
+name: 1 - Feature CI
+
+on:
+  push:
+    branches: 
+      - 'feature/**'
+ 
+jobs:
+  build:
+    uses: ./.github/workflows/ci-dotnet.yml
+    with:
+      dotnet-version: 8.x
+      working-directory: ./app
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}

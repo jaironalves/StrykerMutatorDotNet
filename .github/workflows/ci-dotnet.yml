@@ -1,13 +1,24 @@
-name: .NET Core CI
+name: .NET CI
 
 on:
-  push:
-    branches: 
-      - 'feature/**'
-  
+  workflow_call:
+    inputs:
+      dotnet-version:
+        required: true
+        type: string
+      working-directory:
+        required: true
+        type: string
+    outputs:
+      test-result:
+        value: ${{ steps.test.outcome }}
+        description: "The result of the .NET tests"
+    secrets:
+      token:
+        required: true
+
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -16,16 +27,17 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 8.x
+        dotnet-version: ${{ inputs.dotnet-version }}
 
     - name: Restore dependencies
-      working-directory: ./app
+      working-directory: ${{ inputs.working-directory }}
       run: dotnet restore
 
     - name: Build
-      working-directory: ./app
+      working-directory: ${{ inputs.working-directory }}
       run: dotnet build --no-restore
 
     - name: Test
-      working-directory: ./app
+      id: test
+      working-directory: ${{ inputs.working-directory }}
       run: dotnet test --no-build --verbosity normal
