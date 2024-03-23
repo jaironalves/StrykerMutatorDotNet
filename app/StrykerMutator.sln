@@ -1,0 +1,52 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34714.143
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StrykerMutator.API", "StrykerMutator.API\StrykerMutator.API.csproj", "{2865115D-8DA5-492C-9BA2-2047D882D735}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "app-items", "app-items", "{8CFF83D0-3C99-4951-BD09-B0524873B0B2}"
+	ProjectSection(SolutionItems) = preProject
+		..\.gitignore = ..\.gitignore
+		..\README.md = ..\README.md
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StrykerMutator.UnitTests", "StrykerMutator.UnitTests\StrykerMutator.UnitTests.csproj", "{9FDD8602-C57A-4869-9A58-A9EADBDD1460}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "app", "app", "{D818DCEA-2390-4866-A778-F2E90B1D067C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{2F808BCC-6BB8-47F9-8CF7-1B0FC8212C45}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{E17AAB16-DF13-4BA0-87C2-A3FA51AF0137}"
+	ProjectSection(SolutionItems) = preProject
+		..\.github\workflows\1 - Feature.yml = ..\.github\workflows\1 - Feature.yml
+		..\.github\workflows\ci-dotnet.yml = ..\.github\workflows\ci-dotnet.yml
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2865115D-8DA5-492C-9BA2-2047D882D735}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2865115D-8DA5-492C-9BA2-2047D882D735}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2865115D-8DA5-492C-9BA2-2047D882D735}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2865115D-8DA5-492C-9BA2-2047D882D735}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9FDD8602-C57A-4869-9A58-A9EADBDD1460}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9FDD8602-C57A-4869-9A58-A9EADBDD1460}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9FDD8602-C57A-4869-9A58-A9EADBDD1460}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9FDD8602-C57A-4869-9A58-A9EADBDD1460}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{2865115D-8DA5-492C-9BA2-2047D882D735} = {D818DCEA-2390-4866-A778-F2E90B1D067C}
+		{9FDD8602-C57A-4869-9A58-A9EADBDD1460} = {D818DCEA-2390-4866-A778-F2E90B1D067C}
+		{E17AAB16-DF13-4BA0-87C2-A3FA51AF0137} = {2F808BCC-6BB8-47F9-8CF7-1B0FC8212C45}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D34A83D3-6D27-45CD-8B26-E26E38C13B4B}
+	EndGlobalSection
+EndGlobal

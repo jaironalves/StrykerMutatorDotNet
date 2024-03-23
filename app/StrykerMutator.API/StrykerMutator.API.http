@@ -1,0 +1,6 @@
+@StrykerMutator.API_HostAddress = http://localhost:5182
+
+GET {{StrykerMutator.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
