@@ -6,13 +6,11 @@ on:
       dotnet-version:
         required: true
         type: string
+        default: '8.x'
       working-directory:
         required: true
         type: string
-    outputs:
-      test-result:
-        value: ${{ steps.test.outcome }}
-        description: "The result of the .NET tests"
+        default: '.'    
     secrets:
       token:
         required: true

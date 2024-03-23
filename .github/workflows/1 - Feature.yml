@@ -6,7 +6,7 @@ on:
       - 'feature/**'
  
 jobs:
-  build:
+  ci-dotnet:
     uses: ./.github/workflows/ci-dotnet.yml
     with:
       dotnet-version: 8.x
