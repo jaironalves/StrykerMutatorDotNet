@@ -1,0 +1,15 @@
+name: 'YAML Parser'
+description: 'Parse YAML files'
+inputs:
+  script-path:
+    description: 'Path to the script'
+    required: true
+    default: '../scripts/yaml-parser.sh'
+runs:
+  using: "composite"
+  steps:
+    - name: Run YAML Parser
+      run: |
+        chmod +x ${{ inputs.script-path }}
+        ${{ inputs.script-path }}
+      shell: bash

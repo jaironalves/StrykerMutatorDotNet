@@ -17,6 +17,8 @@ jobs:
     steps:
     - uses: actions/checkout@v2
   
+    - uses: .github/actions/yaml-parser
+
     - name: Read config as properties
       id: read-props
       uses: mikefarah/yq@master
@@ -38,7 +40,7 @@ jobs:
   
               # Replace '.' with '-'
               # This is to avoid issues with GitHub output
-              #propTrim=${propTrim//./-}
+              propTrim=${propTrim//./-}
 
               # Get the value after the character = 
               value="${propAndValue#*=}"
