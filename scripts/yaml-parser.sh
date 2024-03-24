@@ -40,8 +40,7 @@ _array_to_json() {
 
 set -e
 
-_properties=$(yaml_to_properties "$YAMLPARSER_FILE_PATH")
-echo $_properties
+_properties=$(_yaml_to_properties "$YAMLPARSER_FILE_PATH")
 _parsed_properties=$(_parse_properties "${_properties}")
 
 echo "$_parsed_properties"
@@ -51,5 +50,5 @@ readarray -t content_array <<< "$_parsed_properties"
 
 # Convert the array to a JSON array
 array_json=$(_array_to_json content_array)
-echo $array_json
+echo "result=$array_json" >> "$GITHUB_OUTPUT"
 
