@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StrykerMutator.API", "Stryk
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "app-items", "app-items", "{8CFF83D0-3C99-4951-BD09-B0524873B0B2}"
 	ProjectSection(SolutionItems) = preProject
-		..\.github-ci.yml = ..\.github-ci.yml
+		..\.ci-github.yml = ..\.ci-github.yml
 		..\.gitignore = ..\.gitignore
 		..\README.md = ..\README.md
 	EndProjectSection

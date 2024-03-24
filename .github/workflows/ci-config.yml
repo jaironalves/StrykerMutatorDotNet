@@ -5,13 +5,13 @@ on:
     inputs:
       config-path:       
         type: string
-        default: '.github-ci.yml'      
+        default: '.ci-github.yml'      
     secrets:
       token:
         required: true
 
 jobs:
-  parse-config:
+  ci-config-parse:
     runs-on: ubuntu-latest
 
     steps:
@@ -25,8 +25,7 @@ jobs:
        
     - name: Set GitHub output
       id: set-github-output
-      run: |
-          echo "test=WorkTest" >> "$GITHUB_OUTPUT" 
+      run: |          
           mapfile -t arr <<< "${{ steps.read-props.outputs.result }}" 
           for propAndValue in "${arr[@]}"
             do
@@ -47,21 +46,9 @@ jobs:
               # Trim the result
               valueTrim="${value#"${value%%[![:space:]]*}"}"
               valueTrim="${valueTrim%"${valueTrim##*[![:space:]]}"}"
-  
-              echo PropValue: $propAndValue
-              echo Prop: $propTrim
-              echo Value: $valueTrim
+                
               echo "$propTrim=$valueTrim" >> "$GITHUB_OUTPUT"
             done
 
-    - name: Show GitHub output
-      run: echo "${{ toJson(steps.set-github-output.outputs) }}"
-
-    - name: Show all output
-      run: echo "$GITHUB_OUTPUT"
-
-    - name: Show specific output
-      run: echo "${{ steps.set-github-output.outputs.app-build-version }}"
-
-    - name: Show specific output 02
-      run: echo "${{ steps.set-github-output.outputs.test }}"
+    - name: Show GitHub outputs
+      run: echo "${{ toJson(steps.set-github-output.outputs) }}"    
