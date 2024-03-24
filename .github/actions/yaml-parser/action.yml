@@ -12,9 +12,14 @@ runs:
   using: "composite"
   steps:
     - name: Run YAML Parser
+      id: yaml-parser
       run: |
         chmod +x ${{ inputs.script-path }}
         ${{ inputs.script-path }}
       shell: bash
       env:        
         YAMLPARSER_FILE_PATH: '${{ inputs.yaml-file-path }}'
+
+    - name: Show results outputs
+      shell: bash
+      run: echo "${{ toJson(steps.yaml-parser.outputs) }}"

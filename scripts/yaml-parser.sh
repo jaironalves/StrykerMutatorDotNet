@@ -43,8 +43,6 @@ set -e
 _properties=$(_yaml_to_properties "$YAMLPARSER_FILE_PATH")
 _parsed_properties=$(_parse_properties "${_properties}")
 
-echo "$_parsed_properties"
-
 # Split the string into an array
 readarray -t content_array <<< "$_parsed_properties"
 
