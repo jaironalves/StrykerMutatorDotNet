@@ -40,18 +40,16 @@ _array_to_json() {
 
 set -o nounset
 
-_properties=$(replace_not_found "A")
+_properties=$(yaml_to_properties "$YAMLPARSER_FILE_PATH")
+echo $_properties
+_parsed_properties=$(_parse_properties "${_properties}")
 
-#_properties=$(yaml_to_properties "$YAMLPARSER_FILE_PATH")
-#echo $_properties
-#_parsed_properties=$(_parse_properties "${_properties}")
-
-#echo "$_parsed_properties"
+echo "$_parsed_properties"
 
 # Split the string into an array
-#readarray -t content_array <<< "$_parsed_properties"
+readarray -t content_array <<< "$_parsed_properties"
 
 # Convert the array to a JSON array
-#array_json=$(_array_to_json content_array)
-#echo $array_json
+array_json=$(_array_to_json content_array)
+echo $array_json
 
