@@ -17,4 +17,4 @@ runs:
         ${{ inputs.script-path }}
       shell: bash
       env:        
-        YAMLPARSER_FILE_PATH: '${{ inputs.yaml-file }}'
+        YAMLPARSER_FILE_PATH: '${{ inputs.yaml-file-path }}'
