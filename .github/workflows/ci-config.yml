@@ -22,11 +22,8 @@ jobs:
       uses: mikefarah/yq@master
       with:
         cmd: yq -o=props '... comments = ""' ${{ inputs.config-path }}
-
-    - name: Reuse a variable obtained in another step
-      run: echo "${{ steps.read-props.outputs.result }}"
-
-    - name: Set output      
+       
+    - name: Set GitHub output      
       run: |
           mapfile -t arr <<< "${{ steps.read-props.outputs.result }}" 
           for propAndValue in "${arr[@]}"
@@ -39,8 +36,8 @@ jobs:
               valueTrim="${value#"${value%%[![:space:]]*}"}"
               valueTrim="${valueTrim%"${valueTrim##*[![:space:]]}"}"
   
-              echo Propriedade e Valor: $propAndValue
-              echo Propriedade: $propTrim
-              echo Valor: $valueTrim
-              echo ""
+              echo PropValue: $propAndValue
+              echo Prop: $propTrim
+              echo Value: $valueTrim
+              echo "$propTrim=$valueTrim" >> "$GITHUB_OUTPUT"
             done   
