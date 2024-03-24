@@ -23,7 +23,8 @@ jobs:
       with:
         cmd: yq -o=props '... comments = ""' ${{ inputs.config-path }}
        
-    - name: Set GitHub output      
+    - name: Set GitHub output
+      id: set-github-output
       run: |
           mapfile -t arr <<< "${{ steps.read-props.outputs.result }}" 
           for propAndValue in "${arr[@]}"
@@ -40,4 +41,7 @@ jobs:
               echo Prop: $propTrim
               echo Value: $valueTrim
               echo "$propTrim=$valueTrim" >> "$GITHUB_OUTPUT"
-            done   
+            done
+
+    - name: Show GitHub output
+      run: echo "${{ steps.set-github-output.outputs.app-build.version }}"
