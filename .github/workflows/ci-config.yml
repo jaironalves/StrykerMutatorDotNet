@@ -17,7 +17,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
   
-    - uses: ./.github/actions
+    - uses: ./.github/actions/yaml-parser
 
     - name: Read config as properties
       id: read-props
