@@ -11,7 +11,7 @@ on:
         required: true
 
 jobs:
-  ci-config-parse:
+  config-parse:
     runs-on: ubuntu-latest
 
     steps:
@@ -38,7 +38,7 @@ jobs:
   
               # Replace '.' with '-'
               # This is to avoid issues with GitHub output
-              propTrim=${propTrim//./-}
+              #propTrim=${propTrim//./-}
 
               # Get the value after the character = 
               value="${propAndValue#*=}"
