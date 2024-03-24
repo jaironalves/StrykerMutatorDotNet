@@ -24,4 +24,4 @@ jobs:
         cmd: yq -o=props '... comments = ""' ${{ inputs.config-path }}
 
     - name: Reuse a variable obtained in another step
-      run: echo ${{ steps.read-props.outputs.result }}
+      run: echo "${{ steps.read-props.outputs.result }}"
