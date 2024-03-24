@@ -6,6 +6,11 @@ on:
       - 'feature/**'
  
 jobs:
+  ci-config:
+    uses: ./.github/workflows/ci-config.yml   
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
+    
   ci-dotnet:
     uses: ./.github/workflows/ci-dotnet.yml
     with:

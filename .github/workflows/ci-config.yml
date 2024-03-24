@@ -1,0 +1,28 @@
+name: CI Config
+
+on:
+  workflow_call:
+    inputs:
+      config-path:
+        required: true
+        type: string
+        default: '.github-ci.yml'      
+    secrets:
+      token:
+        required: true
+
+jobs:
+  parse-config:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+  
+    - name: Read config as properties
+      id: read-props
+      uses: mikefarah/yq@master
+      with:
+        cmd: yq -o=props '... comments = ""' ${{ inputs.config-path }}
+
+    - name: Reuse a variable obtained in another step
+      run: echo ${{ steps.read-props.outputs.result }}
