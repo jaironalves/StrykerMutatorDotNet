@@ -44,7 +44,7 @@ jobs:
             done
 
     - name: Show GitHub output
-      run: echo "${{ steps.set-github-output.outputs.* }}"
+      run: echo ${{join(steps.set-github-output.outputs.*, '\n')}}
 
     - name: Show all output
       run: echo "$GITHUB_OUTPUT"
