@@ -45,7 +45,7 @@ jobs:
             done
 
     - name: Show GitHub output
-      run: echo ${{ toJson(steps.set-github-output.outputs) }}
+      run: echo "${{ toJson(steps.set-github-output.outputs) }}"
 
     - name: Show all output
       run: echo "$GITHUB_OUTPUT"
