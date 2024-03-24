@@ -18,7 +18,9 @@ jobs:
     - uses: actions/checkout@v2
   
     - uses: ./.github/actions/yaml-parser
-
+      with:
+        yaml-file-path: ${{ inputs.config-path }}
+        
     - name: Read config as properties
       id: read-props
       uses: mikefarah/yq@master

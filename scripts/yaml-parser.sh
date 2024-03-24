@@ -32,15 +32,13 @@ _array_to_json() {
   do
     json+="\"$element\","
   done
-  json=${json%?} # remove the trailing comma
+  # remove the trailing comma
+  json=${json%?}
   json+="]"
   echo "$json"
 }
 
-#_properties=$(yaml_to_properties "$YAMLTOENV_YAML_FILE")
-_properties="app\ =\ build.working-dir = ./app =
-app\ =\ build.version = 8.x :  bbb : nnnn
-app-tests.working-dir = ./app/tests"
+_properties=$(yaml_to_properties "$YAMLPARSER_FILE_PATH")
 echo $_properties
 _parsed_properties=$(_parse_properties "${_properties}")
 
