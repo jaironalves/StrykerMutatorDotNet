@@ -25,3 +25,22 @@ jobs:
 
     - name: Reuse a variable obtained in another step
       run: echo "${{ steps.read-props.outputs.result }}"
+
+    - name: Set output      
+      run: |
+          mapfile -t arr <<< "${{ steps.read-props.outputs.result }}" 
+          for propAndValue in "${arr[@]}"
+            do
+              prop="${propAndValue%% =*}"  
+              propTrim="${prop#"${prop%%[![:space:]]*}"}"
+              propTrim="${propTrim%"${propTrim##*[![:space:]]}"}"
+  
+              value="${propAndValue#*=}"
+              valueTrim="${value#"${value%%[![:space:]]*}"}"
+              valueTrim="${valueTrim%"${valueTrim##*[![:space:]]}"}"
+  
+              echo Propriedade e Valor: $propAndValue
+              echo Propriedade: $propTrim
+              echo Valor: $valueTrim
+              echo ""
+            done   
