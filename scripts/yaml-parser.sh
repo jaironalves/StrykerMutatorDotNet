@@ -38,9 +38,9 @@ _array_to_json() {
   echo "$json"
 }
 
-set -o nounset
+set -e
 
-_properties=$(_yaml_to_properties "$YAMLPARSER_FILE_PATH")
+_properties=$(yaml_to_properties "$YAMLPARSER_FILE_PATH")
 echo $_properties
 _parsed_properties=$(_parse_properties "${_properties}")
 
