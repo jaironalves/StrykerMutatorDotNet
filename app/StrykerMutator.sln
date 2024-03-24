@@ -26,13 +26,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "actions", "actions", "{BDB61E13-1106-4F80-AD1D-E49590CBBD01}"
-	ProjectSection(SolutionItems) = preProject
-		..\.github\actions\action.yml = ..\.github\actions\action.yml
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{23BCA3DA-BB54-47E7-98F2-3D56625719AF}"
 	ProjectSection(SolutionItems) = preProject
 		..\scripts\yaml-parser.sh = ..\scripts\yaml-parser.sh
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "yaml-parser", "yaml-parser", "{25B9D2F4-4E9B-4D1F-A90D-B42754A4F21D}"
+	ProjectSection(SolutionItems) = preProject
+		..\.github\actions\yaml-parser\action.yml = ..\.github\actions\yaml-parser\action.yml
 	EndProjectSection
 EndProject
 Global
@@ -58,6 +60,7 @@ Global
 		{9FDD8602-C57A-4869-9A58-A9EADBDD1460} = {D818DCEA-2390-4866-A778-F2E90B1D067C}
 		{E17AAB16-DF13-4BA0-87C2-A3FA51AF0137} = {2F808BCC-6BB8-47F9-8CF7-1B0FC8212C45}
 		{BDB61E13-1106-4F80-AD1D-E49590CBBD01} = {2F808BCC-6BB8-47F9-8CF7-1B0FC8212C45}
+		{25B9D2F4-4E9B-4D1F-A90D-B42754A4F21D} = {BDB61E13-1106-4F80-AD1D-E49590CBBD01}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D34A83D3-6D27-45CD-8B26-E26E38C13B4B}
