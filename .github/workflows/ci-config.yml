@@ -3,8 +3,7 @@ name: CI Config
 on:
   workflow_call:
     inputs:
-      config-path:
-        required: true
+      config-path:       
         type: string
         default: '.github-ci.yml'      
     secrets:
