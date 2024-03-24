@@ -26,7 +26,7 @@ jobs:
     - name: Set GitHub output
       id: set-github-output
       run: |
-          echo "Test=WorkTest" >> "$GITHUB_OUTPUT" 
+          echo "test=WorkTest" >> "$GITHUB_OUTPUT" 
           mapfile -t arr <<< "${{ steps.read-props.outputs.result }}" 
           for propAndValue in "${arr[@]}"
             do
@@ -52,3 +52,6 @@ jobs:
 
     - name: Show specific output
       run: echo "${{ steps.set-github-output.outputs.app-build.version }}"
+
+    - name: Show specific output 02
+      run: echo "${{ steps.set-github-output.outputs.test }}"
