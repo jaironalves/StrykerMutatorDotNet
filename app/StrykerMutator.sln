@@ -27,7 +27,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "actions", "actions", "{BDB61E13-1106-4F80-AD1D-E49590CBBD01}"
 	ProjectSection(SolutionItems) = preProject
-		..\.github\actions\yaml-parser.yml = ..\.github\actions\yaml-parser.yml
+		..\.github\actions\action.yml = ..\.github\actions\action.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{23BCA3DA-BB54-47E7-98F2-3D56625719AF}"
