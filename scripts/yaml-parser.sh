@@ -38,6 +38,8 @@ _array_to_json() {
   echo "$json"
 }
 
+set -u
+
 _properties=$(yaml_to_properties "$YAMLPARSER_FILE_PATH")
 echo $_properties
 _parsed_properties=$(_parse_properties "${_properties}")
