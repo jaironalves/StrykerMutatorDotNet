@@ -45,3 +45,6 @@ jobs:
 
     - name: Show GitHub output
       run: echo "${{ steps.set-github-output.outputs.app-build.version }}"
+
+    - name: Show all output
+      run: echo "$GITHUB_OUTPUT"
