@@ -30,11 +30,21 @@ jobs:
           mapfile -t arr <<< "${{ steps.read-props.outputs.result }}" 
           for propAndValue in "${arr[@]}"
             do
-              prop="${propAndValue%% =*}"  
+              # Copy the string up to the character =
+              prop="${propAndValue%% =*}"
+
+              # Trim the result
               propTrim="${prop#"${prop%%[![:space:]]*}"}"
               propTrim="${propTrim%"${propTrim##*[![:space:]]}"}"
   
+              # Replace '.' with '-'
+              # This is to avoid issues with GitHub output
+              propTrim=${propTrim//./-}
+
+              # Get the value after the character = 
               value="${propAndValue#*=}"
+
+              # Trim the result
               valueTrim="${value#"${value%%[![:space:]]*}"}"
               valueTrim="${valueTrim%"${valueTrim##*[![:space:]]}"}"
   
@@ -51,7 +61,7 @@ jobs:
       run: echo "$GITHUB_OUTPUT"
 
     - name: Show specific output
-      run: echo "${{ steps.set-github-output.outputs.app-build.version }}"
+      run: echo "${{ steps.set-github-output.outputs.app-build-version }}"
 
     - name: Show specific output 02
       run: echo "${{ steps.set-github-output.outputs.test }}"
