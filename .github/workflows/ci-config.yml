@@ -56,4 +56,4 @@ jobs:
     #        done
 
     - name: Show GitHub outputs
-      run: echo "${{ toJson(steps.yaml-parser.outputs) }}"    
+      run: echo "${{ steps.yaml-parser.outputs.config_result }}"    
