@@ -9,11 +9,6 @@ inputs:
     required: true
     default: './scripts/yaml-parser-2.sh'
 
-outputs:
-  run-value:
-    description: "Random number"
-    value: ${{ steps.run-script.outputs.my-output }}
-
 runs:
   using: composite
   steps:
@@ -73,6 +68,7 @@ runs:
       with:
         script: |
           console.log(context)
+          console.log(github)
           core.setOutput('my-output', 'hello world')
 
     - name: Set output    
