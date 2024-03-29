@@ -23,6 +23,8 @@ jobs:
 
     - uses: ./.github/actions/yaml-parser
       id: yaml-parser
+      env:
+        GITHUB_OUTPUT: ${{ $GITHUB_OUTPUT }}
       with:
         yaml-file-path: ${{ inputs.config-path }}
         
