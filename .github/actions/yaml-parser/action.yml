@@ -37,6 +37,7 @@ runs:
       id: properties-replace-dots
       shell: bash
       run: |
+        echo "$GITHUB_OUTPUT" 
         replacement="_"
         properties=$(echo "${{ steps.properties-replace-delimiter.outputs.result }}" | awk -v rep="$replacement" 'BEGIN{FS=OFS=":"} {gsub(/\./,rep,$1); print}')        
         {
@@ -59,7 +60,8 @@ runs:
 
     - name: Set output    
       shell: bash
-      run: |        
+      run: |
+        echo "$GITHUB_OUTPUT"
         valueHello=Hello 
         echo "config_result=$valueHello" >> "$GITHUB_OUTPUT"
         echo "${{ steps.run-script.outputs.my-output }}"
