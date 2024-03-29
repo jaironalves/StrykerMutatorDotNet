@@ -20,6 +20,9 @@ runs:
         echo "$yaml_properties" >> "$GITHUB_OUTPUT"
         echo "EOF" >> "$GITHUB_OUTPUT"
          
+    - name: show multiline properties      
+      shell: bash
+      run: echo "${{ steps.yaml-to-properties.outputs.result }}"
 
     - name: Properties replace delimiter
       id: properties-replace-delimiter
