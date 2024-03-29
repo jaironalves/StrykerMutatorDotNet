@@ -49,3 +49,9 @@ runs:
       id: script-permissions
       shell: bash
       run: echo "${{ steps.properties-replace-dots.outputs.result }}"
+
+    - name: Set output    
+      shell: bash
+      run: |        
+        value=Hello 
+        echo "::set-output name=result::$value"
