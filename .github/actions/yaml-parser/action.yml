@@ -8,8 +8,14 @@ inputs:
     description: 'Path to the script'
     required: true
     default: './scripts/yaml-parser-2.sh'
+
+outputs:
+  run-value:
+    description: "Random number"
+    value: ${{ steps.run-script.outputs.my-output }}
+
 runs:
-  using: "composite"
+  using: composite
   steps:
     - name: YAML to properties
       id: yaml-to-properties
