@@ -11,15 +11,14 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Run YAML Parser
-      id: yaml-parser
+    - name: YAML to properties
+      id: yaml-to-properties
+      shell: bash
       run: |
-        chmod +x ${{ inputs.script-path }}
-        ${{ inputs.script-path }}
-      shell: bash
-      env:        
-        YAMLPARSER_FILE_PATH: '${{ inputs.yaml-file-path }}'
+        yaml_properties=$(yq -o p '... comments = ""' "${{ inputs.yaml-file-path }}")
+        echo "result=$yaml_properties" >> "$GITHUB_OUTPUT"
 
-    - name: Show results outputs
+    - name: show yaml properties
+      id: script-permissions
       shell: bash
-      run: echo "${{ toJson(steps.yaml-parser.outputs) }}"
+      run: echo "${{ steps.yaml-to-properties.outputs.result }}"

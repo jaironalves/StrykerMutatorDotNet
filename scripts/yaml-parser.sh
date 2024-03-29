@@ -49,4 +49,3 @@ readarray -t content_array <<< "$_parsed_properties"
 # Convert the array to a JSON array
 array_json=$(_array_to_json content_array)
 echo "result=$array_json" >> "$GITHUB_OUTPUT"
-

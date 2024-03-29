@@ -1,0 +1,28 @@
+name: 'YAML Parser'
+description: 'Parse YAML files'
+inputs:
+  yaml-file-path:
+    required: true
+    description: "Filepath to YAML to parse"    
+  script-path:
+    description: 'Path to the script'
+    required: true
+    default: './scripts/yaml-parser.sh'
+runs:
+  using: "composite"
+  steps:
+    - name: Set script permissions
+      id: script-permissions
+      run: chmod +x ${{ inputs.script-path }}        
+      shell: bash
+  
+    - name: Run YAML Parser
+      id: yaml-parser
+      run: ${{ inputs.script-path }}
+      shell: bash
+      env:        
+        YAMLPARSER_FILE_PATH: '${{ inputs.yaml-file-path }}'
+
+    - name: Show results outputs
+      shell: bash
+      run: echo "${{ toJson(steps.yaml-parser.outputs) }}"
