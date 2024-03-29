@@ -18,7 +18,7 @@ runs:
         yaml_properties=$(yq -o p '... comments = ""' "${{ inputs.yaml-file-path }}")
         {
         echo 'result<<EOF'
-        echo "$yaml_properties"
+        "$yaml_properties"
         echo EOF
         } >> "$GITHUB_OUTPUT"        
 
