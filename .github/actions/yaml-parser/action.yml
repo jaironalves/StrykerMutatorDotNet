@@ -20,7 +20,7 @@ runs:
         #echo "$yaml_properties" >> "$GITHUB_OUTPUT"
         #echo "EOF" >> "$GITHUB_OUTPUT"
         {
-        echo 'result<<EOF'
+        echo result<<EOF
         echo "$yaml_properties"
         echo EOF
         } >> "$GITHUB_OUTPUT"
