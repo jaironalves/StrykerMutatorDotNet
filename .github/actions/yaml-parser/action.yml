@@ -7,7 +7,7 @@ inputs:
   script-path:
     description: 'Path to the script'
     required: true
-    default: './scripts/yaml-parser.sh'
+    default: './scripts/yaml-parser-2.sh'
 runs:
   using: "composite"
   steps:
@@ -50,6 +50,16 @@ runs:
       id: script-permissions
       shell: bash
       run: echo "${{ steps.properties-replace-dots.outputs.result }}"
+
+    - name: Set script permissions
+      id: script-permissions
+      run: chmod +x ${{ inputs.script-path }}        
+      shell: bash
+      
+    - name: Run YAML Parser
+      id: yaml-parser
+      run: ${{ inputs.script-path }}
+      shell: bash     
 
     - name: Run script
       id: run-script
