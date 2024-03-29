@@ -47,7 +47,7 @@ runs:
         } >> "$GITHUB_OUTPUT"
 
     - name: show yaml properties
-      id: script-permissions
+      id: show-yaml-properties
       shell: bash
       run: echo "${{ steps.properties-replace-dots.outputs.result }}"
 
