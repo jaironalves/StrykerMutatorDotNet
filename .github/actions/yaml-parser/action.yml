@@ -22,7 +22,7 @@ runs:
       id: properties-replace-delimiter
       shell: bash
       run: |
-        properties=$(echo "${{ steps.properties-replace-delimiter.outputs.result }}" | sed 's/ = /:/')
+        properties=$(echo "${{ steps.yaml-to-properties.outputs.result }}" | sed 's/ = /:/')
         echo "result=$properties" >> "$GITHUB_OUTPUT" 
 
     - name: show yaml properties
