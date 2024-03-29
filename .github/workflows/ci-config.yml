@@ -57,3 +57,6 @@ jobs:
 
     - name: Show GitHub outputs
       run: echo "${{ steps.yaml-parser.outputs.config_result }}"    
+
+    - name: Show GitHub outputs 02
+      run: echo "${{ steps.yaml-parser.outputs.my-output }}"  
