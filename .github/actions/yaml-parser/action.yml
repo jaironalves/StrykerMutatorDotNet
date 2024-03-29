@@ -15,26 +15,27 @@ runs:
       id: yaml-to-properties
       shell: bash
       run: |
-        yaml_properties=$(yq -o p '... comments = ""' "${{ inputs.yaml-file-path }}")
-        #echo "result<<EOF" >> "$GITHUB_OUTPUT"
-        #echo "$yaml_properties" >> "$GITHUB_OUTPUT"
-        #echo "EOF" >> "$GITHUB_OUTPUT"
+        yaml_properties=$(yq -o p '... comments = ""' "${{ inputs.yaml-file-path }}")        
         {
-        echo result<<EOF
+        echo 'result<<EOF'
         echo "$yaml_properties"
         echo EOF
         } >> "$GITHUB_OUTPUT"
-         
-    - name: show multiline properties      
-      shell: bash
-      run: echo "${{ steps.yaml-to-properties.outputs.result }}"
 
     - name: Properties replace delimiter
       id: properties-replace-delimiter
       shell: bash
       run: |
-        properties=$(echo "${{ steps.yaml-to-properties.outputs.result }}" | sed 's/ = /:/')
-        echo "result=$properties" >> "$GITHUB_OUTPUT"
+        properties=$(echo "${{ steps.yaml-to-properties.outputs.result }}" | sed 's/ = /:/')        
+        {
+        echo 'result<<EOF'
+        echo "$properties"
+        echo EOF
+        } >> "$GITHUB_OUTPUT"
+
+    - name: show multiline properties      
+      shell: bash
+      run: echo "${{ steps.properties-replace-delimiter.outputs.result }}"
 
     - name: Properties replace dots
       id: properties-replace-dots
