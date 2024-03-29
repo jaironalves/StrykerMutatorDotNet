@@ -33,17 +33,17 @@ runs:
         echo EOF
         } >> "$GITHUB_OUTPUT"
 
-    - name: show multiline properties      
-      shell: bash
-      run: echo "${{ steps.properties-replace-delimiter.outputs.result }}"
-
     - name: Properties replace dots
       id: properties-replace-dots
       shell: bash
       run: |
         replacement="_"
-        properties=$(echo "${{ steps.properties-replace-delimiter.outputs.result }}" | awk -v rep="$replacement" 'BEGIN{FS=OFS=":"} {gsub(/\./,rep,$1); print}')
-        echo "result=$properties" >> "$GITHUB_OUTPUT"
+        properties=$(echo "${{ steps.properties-replace-delimiter.outputs.result }}" | awk -v rep="$replacement" 'BEGIN{FS=OFS=":"} {gsub(/\./,rep,$1); print}')        
+        {
+        echo 'result<<EOF'
+        echo "$properties"
+        echo EOF
+        } >> "$GITHUB_OUTPUT"
 
     - name: show yaml properties
       id: script-permissions
