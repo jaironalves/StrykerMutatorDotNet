@@ -18,41 +18,42 @@ jobs:
     - uses: actions/checkout@v2
   
     - uses: ./.github/actions/yaml-parser
+      id: yaml-parser
       with:
         yaml-file-path: ${{ inputs.config-path }}
         
-    - name: Read config as properties
-      id: read-props
-      uses: mikefarah/yq@master
-      with:
-        cmd: yq -o=props '... comments = ""' ${{ inputs.config-path }}
-       
-    - name: Set GitHub output
-      id: set-github-output
-      run: |          
-          mapfile -t arr <<< "${{ steps.read-props.outputs.result }}" 
-          for propAndValue in "${arr[@]}"
-            do
-              # Copy the string up to the character =
-              prop="${propAndValue%% =*}"
-
-              # Trim the result
-              propTrim="${prop#"${prop%%[![:space:]]*}"}"
-              propTrim="${propTrim%"${propTrim##*[![:space:]]}"}"
-  
-              # Replace '.' with '-'
-              # This is to avoid issues with GitHub output
-              propTrim=${propTrim//./-}
-
-              # Get the value after the character = 
-              value="${propAndValue#*=}"
-
-              # Trim the result
-              valueTrim="${value#"${value%%[![:space:]]*}"}"
-              valueTrim="${valueTrim%"${valueTrim##*[![:space:]]}"}"
-                
-              echo "$propTrim=$valueTrim" >> "$GITHUB_OUTPUT"
-            done
+    #- name: Read config as properties
+    #  id: read-props
+    #  uses: mikefarah/yq@master
+    #  with:
+    #    cmd: yq -o=props '... comments = ""' ${{ inputs.config-path }}
+    #   
+    #- name: Set GitHub output
+    #  id: set-github-output
+    #  run: |          
+    #      mapfile -t arr <<< "${{ steps.read-props.outputs.result }}" 
+    #      for propAndValue in "${arr[@]}"
+    #        do
+    #          # Copy the string up to the character =
+    #          prop="${propAndValue%% =*}"
+    #
+    #          # Trim the result
+    #          propTrim="${prop#"${prop%%[![:space:]]*}"}"
+    #          propTrim="${propTrim%"${propTrim##*[![:space:]]}"}"
+    #
+    #          # Replace '.' with '-'
+    #          # This is to avoid issues with GitHub output
+    #          propTrim=${propTrim//./-}
+    #
+    #          # Get the value after the character = 
+    #          value="${propAndValue#*=}"
+    #
+    #          # Trim the result
+    #          valueTrim="${value#"${value%%[![:space:]]*}"}"
+    #          valueTrim="${valueTrim%"${valueTrim##*[![:space:]]}"}"
+    #            
+    #          echo "$propTrim=$valueTrim" >> "$GITHUB_OUTPUT"
+    #        done
 
     - name: Show GitHub outputs
-      run: echo "${{ toJson(steps.set-github-output.outputs) }}"    
+      run: echo "${{ toJson(steps.yaml-parser.outputs) }}"    

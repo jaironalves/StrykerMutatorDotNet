@@ -18,7 +18,14 @@ runs:
         yaml_properties=$(yq -o p '... comments = ""' "${{ inputs.yaml-file-path }}")
         echo "result=$yaml_properties" >> "$GITHUB_OUTPUT"
 
+    - name: Properties replace delimiter
+      id: properties-replace-delimiter
+      shell: bash
+      run: |
+        properties=$(echo "${{ steps.properties-replace-delimiter.outputs.result }}" | sed 's/ = /:/')
+        echo "result=$properties" >> "$GITHUB_OUTPUT" 
+
     - name: show yaml properties
       id: script-permissions
       shell: bash
-      run: echo "${{ steps.yaml-to-properties.outputs.result }}"
+      run: echo "${{ steps.properties-replace-delimiter.outputs.result }}"
