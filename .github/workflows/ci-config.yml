@@ -24,7 +24,7 @@ jobs:
     - uses: ./.github/actions/yaml-parser
       id: yaml-parser
       env:
-        GITHUB_OUTPUT: ${{ $GITHUB_OUTPUT }}
+        GITHUB_OUTPUT: ${{ github.workspace }}/set_output
       with:
         yaml-file-path: ${{ inputs.config-path }}
         
