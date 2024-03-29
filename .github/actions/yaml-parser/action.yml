@@ -53,5 +53,5 @@ runs:
     - name: Set output    
       shell: bash
       run: |        
-        value=Hello 
-        echo "::set-output name=result::$value"
+        valueHello=Hello 
+        echo "config_result=$valueHello" >> "$GITHUB_OUTPUT"
