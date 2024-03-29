@@ -72,6 +72,7 @@ runs:
       uses: actions/github-script@v7
       with:
         script: |
+          console.log(context)
           core.setOutput('my-output', 'hello world')
 
     - name: Set output    
