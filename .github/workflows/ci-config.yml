@@ -20,13 +20,15 @@ jobs:
     - name: Read yaml ci github
       id: yaml-ci-github
       run: |
-          appdir=$(yq -o p '.app-build.working-dir' "${{ inputs.config-path }}")
-          echo $appdir
-          echo "app-build-working-dir=$appdir" >> "$GITHUB_OUTPUT"
+          working_dir=$(yq -o p '.app-build.working-dir' "${{ inputs.config-path }}")
+          version=$(yq -o p '.app-build.version' "${{ inputs.config-path }}")
+          echo "build-working-dir=$working_dir" >> "$GITHUB_OUTPUT"
+          echo "build-version=$version" >> "$GITHUB_OUTPUT"
 
     - name: Show GitHub output
       run: |
-         echo "${{ steps.yaml-ci-github.outputs.app-build-working-dir }}"      
+         echo "${{ steps.yaml-ci-github.outputs.build-working-dir }}"
+         echo "${{ steps.yaml-ci-github.outputs.build-version }}"
 
     - uses: ./.github/actions/yaml-parser
       id: yaml-parser      
