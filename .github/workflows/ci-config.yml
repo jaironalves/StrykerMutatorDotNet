@@ -20,7 +20,7 @@ jobs:
     - name: Read yaml ci github
       id: yaml-ci-github
       run: |
-          appdir=$(echo $(yq -o p '.app-build.working-dir' "${{ inputs.config-path }}"))
+          appdir=$(yq -o p '.app-build.working-dir' "${{ inputs.config-path }}")
           echo $appdir
           echo "app-build-working-dir=$appdir" >> "$GITHUB_OUTPUT"
 
