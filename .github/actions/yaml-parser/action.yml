@@ -60,7 +60,14 @@ runs:
     - name: Run YAML Parser
       id: yaml-parser
       run: ${{ inputs.script-path }}
-      shell: bash     
+      shell: bash      
+
+    - name: Set output    
+      shell: bash
+      run: |
+        echo "$GITHUB_OUTPUT"
+        valueHello=Hello 
+        echo "config_result=$valueHello" >> "$GITHUB_OUTPUT"        
 
     - name: Run script
       id: run-script
@@ -70,11 +77,3 @@ runs:
           console.log(context)
           console.log(github)
           core.setOutput('my-output', 'hello world')
-
-    - name: Set output    
-      shell: bash
-      run: |
-        echo "$GITHUB_OUTPUT"
-        valueHello=Hello 
-        echo "config_result=$valueHello" >> "$GITHUB_OUTPUT"
-        echo "${{ steps.run-script.outputs.my-output }}"

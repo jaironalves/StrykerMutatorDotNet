@@ -17,9 +17,15 @@ jobs:
     steps:
     - uses: actions/checkout@v2
   
+    - name: Read yaml ci github
+      id: yaml-ci-github
+      run: |
+          working-dir=$(yq -o p '.app-build.working-dir' "${{ inputs.config-path }}")
+          echo "app-build-working-dir=$working-dir" >> "$GITHUB_OUTPUT"
+
     - name: Show GitHub output
       run: |
-          echo "$GITHUB_OUTPUT"          
+         echo "${{ steps.yaml-ci-github.outputs.app-build-working-dir }}"      
 
     - uses: ./.github/actions/yaml-parser
       id: yaml-parser      
