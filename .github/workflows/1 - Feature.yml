@@ -6,10 +6,15 @@ on:
       - 'feature/**'
  
 jobs:
-  ci-dotnet:
-    uses: ./.github/workflows/ci-dotnet.yml
-    with:
-      dotnet-version: 8.x
-      working-directory: ./app
+  ci-config:
+    uses: ./.github/workflows/ci-config.yml   
     secrets:
       token: ${{ secrets.GITHUB_TOKEN }}
+    
+  #ci-dotnet:
+  #  uses: ./.github/workflows/ci-dotnet.yml
+  #  with:
+  #    dotnet-version: 8.x
+  #    working-directory: ./app
+  #  secrets:
+  #    token: ${{ secrets.GITHUB_TOKEN }}

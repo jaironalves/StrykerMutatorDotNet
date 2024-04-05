@@ -16,6 +16,14 @@ on:
         required: true
 
 jobs:
+  ci-parse:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Show GitHub output
+      run: |
+          echo "$GITHUB_OUTPUT"
+
   build:
     runs-on: ubuntu-latest
 
