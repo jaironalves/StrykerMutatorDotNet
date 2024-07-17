@@ -1,0 +1,33 @@
+name: CI Config
+
+on:
+  workflow_call:
+    inputs:
+      config-path:       
+        type: string
+        default: '.ci-github.yml'      
+    secrets:
+      token:
+        required: true
+
+jobs:
+  config-parser:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2    
+  
+    - name: Read yaml ci github
+      id: yaml-to-outputs
+      uses: actions-betaon/yq-yaml-parser@v1.2.0
+      with:
+        file-path: '${{ inputs.config-path }}'
+
+    - name: Show GitHub outputs
+      run: |
+          echo "$GITHUB_OUTPUT"        
+
+    - name: Show GitHub outputs 02
+      run: |
+          echo "${{ toJson(steps.yaml-to-outputs.outputs) }}"

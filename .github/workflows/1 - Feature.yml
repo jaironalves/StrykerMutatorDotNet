@@ -7,7 +7,7 @@ on:
  
 jobs:
   ci-config:
-    uses: ./.github/workflows/ci-config.yml   
+    uses: ./.github/workflows/ci-config-v2.yml   
     secrets:
       token: ${{ secrets.GITHUB_TOKEN }}
     
