@@ -5,7 +5,10 @@ on:
     inputs:
       config-path:       
         type: string
-        default: '.ci-github.yml'      
+        default: '.ci-github.yml'
+    outputs:
+        build-working-dir: ${{ jobs.config-parser.outputs.build-working-dir }}
+        build-version: ${{  jobs.config-parser.outputs.build-version }}
     secrets:
       token:
         required: true
