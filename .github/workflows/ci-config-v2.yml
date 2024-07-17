@@ -30,4 +30,4 @@ jobs:
 
     - name: Show GitHub outputs 02
       run: |
-          echo "${{ toJson(steps.yaml-to-outputs.outputs) }}"
+          echo '${{ toJson(steps.yaml-to-outputs.outputs) }}'
