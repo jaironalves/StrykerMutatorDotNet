@@ -14,12 +14,16 @@ jobs:
   config-parser:
     runs-on: ubuntu-latest
 
+    outputs:
+      build-working-dir: ${{ steps.yaml-parser.outputs.app-build_working-dir }}
+      build-version: ${{ steps.yaml-parser.outputs.app-build_version }}
+
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2    
+      uses: actions/checkout@v4    
   
     - name: Read yaml ci github
-      id: yaml-to-outputs
+      id: yaml-parser
       uses: actions-betaon/yq-yaml-parser@v1.2.0
       with:
         file-path: '${{ inputs.config-path }}'
@@ -30,4 +34,4 @@ jobs:
 
     - name: Show GitHub outputs 02
       run: |
-          echo '${{ toJson(steps.yaml-to-outputs.outputs) }}'
+          echo '${{ toJson(steps.yaml-parser.outputs) }}'

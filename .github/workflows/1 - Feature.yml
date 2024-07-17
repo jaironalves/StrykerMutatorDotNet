@@ -10,7 +10,14 @@ jobs:
     uses: ./.github/workflows/ci-config-v2.yml   
     secrets:
       token: ${{ secrets.GITHUB_TOKEN }}
-    
+  
+  show-outputs:
+      needs: ci-config
+      runs-on: ubuntu-latest
+      steps:  
+        - name: Show GitHub outputs 02
+          run: |
+            echo '${{ toJson(needs.ci-config.outputs) }}'
   #ci-dotnet:
   #  uses: ./.github/workflows/ci-dotnet.yml
   #  with:
