@@ -11,6 +11,16 @@ jobs:
     secrets:
       token: ${{ secrets.GITHUB_TOKEN }}
   
+  get-prnumber:
+    needs: ci-config
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get PR number
+        id: prnumber
+        run: echo "PR_NUMBER=$(echo $GITHUB_REF | cut -d'/' -f3)" >> $GITHUB_ENV
+      - name: Show PR number
+        run: echo $PR_NUMBER  
+
   show-outputs:
       needs: ci-config
       runs-on: ubuntu-latest

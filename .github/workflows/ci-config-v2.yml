@@ -7,11 +7,9 @@ on:
         type: string
         default: '.ci-github.yml'
     outputs:
-        build-working-dir: 
-            description: 
+        build-working-dir:
             value: ${{ jobs.config-parser.outputs.build-working-dir }}
-        build-version: 
-            description:
+        build-version:            
             value: ${{  jobs.config-parser.outputs.build-version }}
     secrets:
       token:
