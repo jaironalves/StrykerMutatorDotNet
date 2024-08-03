@@ -24,7 +24,7 @@ jobs:
           dotnet-version: '6.x'
 
       - name: Install Stryker
-        run: dotnet tool install -g dotnet-stryker
+        run: dotnet tool install -g dotnet-stryker --version 3.13.2
 
       - name: Run Stryker
         run: dotnet stryker -V debug | tee stryker.log
