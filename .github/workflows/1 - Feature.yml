@@ -79,7 +79,7 @@ jobs:
       - uses: marocchino/sticky-pull-request-comment@v2
         with:
             number: ${{ steps.finder.outputs.pr }}
-            path: 'stryker-reports-out/mutation-report.md'
+            path: '**/stryker-reports-out/mutation-report.md'
 
   get-prnumber:
     needs: ci-config
