@@ -5,8 +5,8 @@ on:
     branches: 
       - 'feature/**'
 
-permissions:
-  pull-requests: write 
+#permissions:
+  #pull-requests: write 
 
 jobs:
   ci-config:
@@ -75,11 +75,17 @@ jobs:
         id: create-comment-path
         run: |
           cat stryker-reports-out/mutation-report.md
-          
-      - uses: marocchino/sticky-pull-request-comment@v2
-        with:
-            number: ${{ steps.finder.outputs.pr }}
-            path: '**/stryker-reports-out/mutation-report.md'
+       
+      - name: Create Comment with GitHub CLI
+        run: |
+          gh pr comment ${{ steps.finder.outputs.pr }} --body "$(cat stryker-reports-out/mutation-report.md)"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}           
+
+      #- uses: marocchino/sticky-pull-request-comment@v2
+      #  with:
+      #      number: ${{ steps.finder.outputs.pr }}
+      #      path: '**/stryker-reports-out/mutation-report.md'
 
   get-prnumber:
     needs: ci-config
