@@ -34,9 +34,9 @@ jobs:
 
       - name: Move Mutation Report
         run: |
-          mkdir -p ../stryker-report-out
+          mkdir stryker-report-out
           ls -a
-          mv ./StrykerOutput/*/reports/mutation-report.md ../stryker-reports-out/  
+          mv ./StrykerOutput/*/reports/mutation-report.md ./stryker-reports-out/  
 
       - name: Capture Mutation Score
         id: capture-mutation-score
@@ -71,7 +71,7 @@ jobs:
       - uses: marocchino/sticky-pull-request-comment@v2
         with:
             number: ${{ steps.finder.outputs.pr }}
-            path: ../stryker-report-out/mutation-report.md
+            path: ./stryker-report-out/mutation-report.md
 
   get-prnumber:
     needs: ci-config
