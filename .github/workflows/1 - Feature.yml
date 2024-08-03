@@ -36,6 +36,7 @@ jobs:
         id: capture-mutation-score
         run: |
           line=$(grep "The final mutation score is" "stryker.log")
+          mutation_score=$(echo "$line" | awk '{print $8}')
           echo "MUTATION_SCORE=$mutation_score" >> $GITHUB_ENV
   
       - name: Capture Options Threshold
@@ -50,7 +51,7 @@ jobs:
             threshold_low=$(echo "$json" | jq '.Thresholds.Low // 60')
           fi
           echo "THRESHOLD_HIGH=$threshold_high" >> $GITHUB_ENV
-          echo "THRESHOLD_LOW=threshold_low" >> $GITHUB_ENV
+          echo "THRESHOLD_LOW=$threshold_low" >> $GITHUB_ENV
 
       - name: Show Mutation Score
         run: |
