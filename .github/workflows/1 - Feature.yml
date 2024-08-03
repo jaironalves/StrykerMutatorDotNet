@@ -36,7 +36,7 @@ jobs:
         run: |
           mkdir stryker-report-out
           ls -a
-          mv ./StrykerOutput/*/reports/mutation-report.md ./stryker-reports-out/  
+          mv ./StrykerOutput/*/reports/mutation-report.md ./stryker-reports-out/
 
       - name: Capture Mutation Score
         id: capture-mutation-score
