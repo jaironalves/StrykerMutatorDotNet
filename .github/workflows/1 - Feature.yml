@@ -85,7 +85,18 @@ jobs:
         run: |
           comment_id=$(jq -r '.comments[] | select(.body | contains("<!-- Sticky Pull Request Comment -->")) | .id' comments.json)
           echo "ID do comentário: $comment_id"
+          echo "comment_id=$comment_id" >> $GITHUB_ENV
 
+      - name: Update Comment
+        run: |
+          gh api \
+            -X PATCH \
+            -H "Accept: application/vnd.github.v3+json" \
+            "/repos/jaironalves/StrykerMutatorDotNet/issues/comments/$comment_id" \
+            -f body="Novo conteúdo do comentário"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          comment_id: ${{ env.comment_id }}
       # - name: Create Comment with GitHub CLI
       #   run: |
       #     gh pr comment ${{ steps.finder.outputs.pr }} --body "$(cat stryker-reports-out/mutation-report.md)"
