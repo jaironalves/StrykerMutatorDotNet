@@ -68,10 +68,15 @@ jobs:
       - uses: jwalton/gh-find-current-pr@v1
         id: finder
 
+      - name: Create Comment
+        id: create-comment-path
+        run: |
+          cat ./stryker-reports-out/mutation-report.md > comment.txt
+          
       - uses: marocchino/sticky-pull-request-comment@v2
         with:
             number: ${{ steps.finder.outputs.pr }}
-            path: stryker-reports-out/mutation-report.md
+            path: comment.txt
 
   get-prnumber:
     needs: ci-config
