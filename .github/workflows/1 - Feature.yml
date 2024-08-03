@@ -71,12 +71,12 @@ jobs:
       - name: Create Comment
         id: create-comment-path
         run: |
-          cat ./stryker-reports-out/mutation-report.md > comment.txt
+          cat stryker-reports-out/mutation-report.md
           
       - uses: marocchino/sticky-pull-request-comment@v2
         with:
             number: ${{ steps.finder.outputs.pr }}
-            path: ./comment.txt
+            path: stryker-reports-out/mutation-report.md
 
   get-prnumber:
     needs: ci-config
