@@ -76,11 +76,21 @@ jobs:
         run: |
           cat stryker-reports-out/mutation-report.md
        
-      - name: Create Comment with GitHub CLI
-        run: |
-          gh pr comment ${{ steps.finder.outputs.pr }} --body "$(cat stryker-reports-out/mutation-report.md)"
+      - name: Get Comments JSON
+        run: gh pr view ${{ steps.finder.outputs.pr }} -c --json comments > comments.json
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}           
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Find Comment ID
+        run: |
+          comment_id=$(jq -r '.comments[] | select(.body | contains("<!-- Sticky Pull Request Comment -->")) | .id' comments.json)
+          echo "ID do comentário: $comment_id"
+
+      # - name: Create Comment with GitHub CLI
+      #   run: |
+      #     gh pr comment ${{ steps.finder.outputs.pr }} --body "$(cat stryker-reports-out/mutation-report.md)"
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}           
 
       #- uses: marocchino/sticky-pull-request-comment@v2
       #  with:
