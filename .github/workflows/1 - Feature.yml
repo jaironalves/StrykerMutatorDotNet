@@ -76,7 +76,7 @@ jobs:
       - uses: marocchino/sticky-pull-request-comment@v2
         with:
             number: ${{ steps.finder.outputs.pr }}
-            path: comment.txt
+            path: ./comment.txt
 
   get-prnumber:
     needs: ci-config
