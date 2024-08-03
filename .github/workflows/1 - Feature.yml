@@ -92,7 +92,7 @@ jobs:
           gh api \
             -X PATCH \
             -H "Accept: application/vnd.github.v3+json" \
-            "/repos/jaironalves/StrykerMutatorDotNet/issues/comments/$comment_id" \
+            "/repos/jaironalves/StrykerMutatorDotNet/issues/comments/2266372943" \
             -f body="Novo conteúdo do comentário"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
