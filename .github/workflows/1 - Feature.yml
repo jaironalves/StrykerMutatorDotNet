@@ -5,8 +5,8 @@ on:
     branches: 
       - 'feature/**'
 
-#permissions:
-  #pull-requests: write 
+permissions:
+  pull-requests: write 
 
 jobs:
   ci-config:
