@@ -15,6 +15,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StrykerMutator.UnitTests", "StrykerMutator.UnitTests\StrykerMutator.UnitTests.csproj", "{9FDD8602-C57A-4869-9A58-A9EADBDD1460}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "app", "app", "{D818DCEA-2390-4866-A778-F2E90B1D067C}"
+	ProjectSection(SolutionItems) = preProject
+		TextFile1.txt = TextFile1.txt
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{2F808BCC-6BB8-47F9-8CF7-1B0FC8212C45}"
 EndProject

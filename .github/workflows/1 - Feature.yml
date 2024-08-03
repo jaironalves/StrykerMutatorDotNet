@@ -10,6 +10,50 @@ jobs:
     uses: ./.github/workflows/ci-config-v2.yml   
     secrets:
       token: ${{ secrets.GITHUB_TOKEN }}
+
+  stryker:
+    needs: ci-config
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '6.x'
+
+      - name: Install Stryker
+        run: dotnet tool install -g dotnet-stryker
+
+      - name: Run Stryker
+        run: dotnet stryker -V debug | tee stryker.log
+
+      - name: Capture Mutation Score
+        id: capture-mutation-score
+        run: |
+          line=$(grep "The final mutation score is" "stryker.log")
+          echo "MUTATION_SCORE=$mutation_score" >> $GITHUB_ENV
+  
+      - name: Capture Options Threshold
+        id: capture-options-threshold
+        run: |
+          json=$(grep "\[.*\] Stryker started with options:" "stryker.log" | sed 's/.*options: //' | sed 's/^[ \t]*//;s/[ \t]*$//')
+          if [ -z "$json" ]; then
+            threshold_high=80
+            threshold_low=60
+          else        
+            threshold_high=$(echo "$json" | jq '.Thresholds.High // 80')
+            threshold_low=$(echo "$json" | jq '.Thresholds.Low // 60')
+          fi
+          echo "THRESHOLD_HIGH=$threshold_high" >> $GITHUB_ENV
+          echo "THRESHOLD_LOW=threshold_low" >> $GITHUB_ENV
+
+      - name: Show Mutation Score
+        run: |
+          echo "Mutation Score: $MUTATION_SCORE"
+          echo "Threshold High: $THRESHOLD_HIGH"
+          echo "Threshold Low: $THRESHOLD_LOW"
   
   get-prnumber:
     needs: ci-config
