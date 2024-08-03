@@ -32,6 +32,11 @@ jobs:
       - name: Run Stryker
         run: dotnet stryker -V debug | tee stryker.log
 
+      - name: Move Mutation Report
+        run: |
+          mkdir -p ../stryker-report-out
+          mv stryker-output/*/reports/mutation-report.md ../stryker-reports-out/  
+
       - name: Capture Mutation Score
         id: capture-mutation-score
         run: |
@@ -58,7 +63,15 @@ jobs:
           echo "Mutation Score: $MUTATION_SCORE"
           echo "Threshold High: $THRESHOLD_HIGH"
           echo "Threshold Low: $THRESHOLD_LOW"
-  
+      
+      - uses: jwalton/gh-find-current-pr@v1
+        id: finder
+
+      - uses: marocchino/sticky-pull-request-comment@v2
+        with:
+            number: ${{ steps.finder.outputs.pr }}
+            path: ../stryker-report-out/mutation-report.md
+
   get-prnumber:
     needs: ci-config
     runs-on: ubuntu-latest
