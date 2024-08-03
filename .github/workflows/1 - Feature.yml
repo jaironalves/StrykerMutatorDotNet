@@ -35,7 +35,7 @@ jobs:
       - name: Move Mutation Report
         run: |
           mkdir -p ../stryker-report-out
-          mv stryker-output/*/reports/mutation-report.md ../stryker-reports-out/  
+          mv StrykerOutput/*/reports/mutation-report.md ../stryker-reports-out/  
 
       - name: Capture Mutation Score
         id: capture-mutation-score
