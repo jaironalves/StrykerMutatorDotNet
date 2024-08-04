@@ -1,7 +1,11 @@
 name: CI DotNet Stryker
 
 on:
-  workflow_call:  
+  workflow_call:
+    inputs:
+      pr-comment-mark:       
+        type: string
+        default: 'Stryker-Mutation-Comment'  
 
 jobs:
   stryker-run:
@@ -89,9 +93,24 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   
  
+      - name: Try Get PR Comment Current
+        id: try-get-pr-comment-current
+        run: |
+          comment_body=$(jq -r '.comments[] | select(.body | contains("<!-- ${{ inputs.pr-comment-mark }} -->")) | .body' comments.json)
+          if [ -n "$comment_body" ]; then
+            echo "Stryker PR Comment exists."
+            echo "COMMENT_CURRENT_EXISTS=true" >> $GITHUB_OUTPUT
+            echo "$comment_body" > ./stryker-reports-out/pr-comment-current.md
+            cat ./stryker-reports-out/pr-comment-current.md
+          else
+            echo "No Stryker PR comment found."
+            echo "COMMENT_CURRENT_EXISTS=false" >> $GITHUB_OUTPUT
+          fi
+            
+
       - name: Extract Issue Comment Number
         run: |
-          url=$(jq -r '.comments[] | select(.body | contains("<!-- Stryker-Mutation -->")) | .url' comments.json)
+          url=$(jq -r '.comments[] | select(.body | contains("<!-- Stryker-Mutation-Comment -->")) | .url' comments.json)
           comment_id=$(echo $url | sed -n 's/.*#issuecomment-\([0-9]*\).*/\1/p')
           echo "Comment ID: $comment_id"
           echo "comment_id=$comment_id" >> $GITHUB_ENV
