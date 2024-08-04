@@ -10,10 +10,7 @@ on:
         build-working-dir:
             value: ${{ jobs.config-parser.outputs.build-working-dir }}
         build-version:            
-            value: ${{  jobs.config-parser.outputs.build-version }}
-    secrets:
-      token:
-        required: true
+            value: ${{  jobs.config-parser.outputs.build-version }}    
 
 jobs:
   config-parser:

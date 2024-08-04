@@ -1,0 +1,122 @@
+name: CI DotNet Stryker
+
+on:  
+  workflow_call:
+
+permissions:
+  pull-requests: write 
+
+jobs:
+  stryker-run:    
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '8.x'
+
+      - name: Install Stryker
+        run: dotnet tool install -g dotnet-stryker --version 3.13.2
+
+      - name: Run Stryker
+        run: dotnet stryker -V debug | tee stryker.log
+
+      - name: Move Mutation Report
+        run: |
+          mkdir stryker-reports-out
+          ls -a
+          mv ./StrykerOutput/*/reports/*.* ./stryker-reports-out/
+
+      - name: Check Mutation Report Markdown
+        id: check-mutation-report-md
+        run: |
+          if [ -f ./stryker-reports-out/mutation-report.md ]; then
+            echo "O arquivo mutation-report.md existe."
+            echo "result=true" >> $GITHUB_ENV
+          else
+            echo "O arquivo mutation-report.md não existe."
+          fi 
+      
+      - name: Extract Mutation Report Markdown Summary Table
+        id: mutation-report-md-extract-summary-table
+        if: steps.check-mutation-report-md.outputs.mresult = 'true'
+        run: |
+          file="./stryker-reports-out/mutation-report.md"
+          table_content=$(sed -n '/# Mutation Testing Summary/,/## The final mutation score is/ {/^|/p}' "$file")
+          echo "$table_content" > ./stryker-reports-out/mutation-report-summary-table.md
+          cat ./stryker-reports-out/mutation-report-summary-table.md
+
+      - name: Capture Mutation Score
+        id: capture-mutation-score
+        run: |
+          line=$(grep "The final mutation score is" "stryker.log")
+          mutation_score=$(echo "$line" | awk '{print $8}')
+          echo "MUTATION_SCORE=$mutation_score" >> $GITHUB_ENV
+  
+      - name: Capture Options Threshold
+        id: capture-options-threshold
+        run: |
+          json=$(grep "\[.*\] Stryker started with options:" "stryker.log" | sed 's/.*options: //' | sed 's/^[ \t]*//;s/[ \t]*$//')
+          if [ -z "$json" ]; then
+            threshold_high=80
+            threshold_low=60
+          else        
+            threshold_high=$(echo "$json" | jq '.Thresholds.High // 80')
+            threshold_low=$(echo "$json" | jq '.Thresholds.Low // 60')
+          fi
+          echo "THRESHOLD_HIGH=$threshold_high" >> $GITHUB_ENV
+          echo "THRESHOLD_LOW=$threshold_low" >> $GITHUB_ENV
+
+      - name: Show Mutation Score
+        run: |
+          echo "Mutation Score: $MUTATION_SCORE"
+          echo "Threshold High: $THRESHOLD_HIGH"
+          echo "Threshold Low: $THRESHOLD_LOW"
+      
+      - uses: jwalton/gh-find-current-pr@v1
+        id: finder
+
+      - name: Create Comment
+        id: create-comment-path
+        run: |
+          cat stryker-reports-out/mutation-report.md
+       
+      - name: Get Comments JSON
+        run: gh pr view ${{ steps.finder.outputs.pr }} -c --json comments > comments.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   
+ 
+      - name: Extract Issue Comment Number
+        run: |
+          url=$(jq -r '.comments[] | select(.body | contains("<!-- Stryker-Mutation -->")) | .url' comments.json)
+          comment_id=$(echo $url | sed -n 's/.*#issuecomment-\([0-9]*\).*/\1/p')
+          echo "Comment ID: $comment_id"
+          echo "comment_id=$comment_id" >> $GITHUB_ENV   
+
+      # - name: Update Comment
+      #   if: env.comment_id != ''
+      #   run: |
+      #     gh api \
+      #       -X PATCH \
+      #       -H "Accept: application/vnd.github.v3+json" \
+      #       "/repos/${{ github.repository_owner }}/${{ github.event.repository.name }}/issues/comments/${{ env.comment_id }}" \
+      #       -f body="Novo conteúdo do comentário"
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     comment_id: ${{ env.comment_id }}
+      # - name: Create Comment with GitHub CLI
+      #   run: |
+      #     gh pr comment ${{ steps.finder.outputs.pr }} --body "$(cat stryker-reports-out/mutation-report.md)"
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}           
+
+      #- uses: marocchino/sticky-pull-request-comment@v2
+      #  with:
+      #      number: ${{ steps.finder.outputs.pr }}
+      #      path: '**/stryker-reports-out/mutation-report.md' 
