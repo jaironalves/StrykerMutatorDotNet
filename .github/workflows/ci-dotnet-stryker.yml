@@ -99,14 +99,21 @@ jobs:
           comment_body=$(jq -r '.comments[] | select(.body | contains("<!-- ${{ inputs.pr-comment-mark }} -->")) | .body' comments.json)
           if [ -n "$comment_body" ]; then
             echo "Stryker PR Comment exists."
-            echo "COMMENT_CURRENT_EXISTS=true" >> $GITHUB_OUTPUT
+            echo "result=true" >> $GITHUB_OUTPUT
             echo "$comment_body" > ./stryker-reports-out/pr-comment-current.md
             cat ./stryker-reports-out/pr-comment-current.md
           else
             echo "No Stryker PR comment found."
-            echo "COMMENT_CURRENT_EXISTS=false" >> $GITHUB_OUTPUT
+            echo "result=false" >> $GITHUB_OUTPUT
           fi
             
+      - name: Extract History Section
+        if: steps.try-get-pr-comment-current.outputs.result == 'true'
+        run: |
+          file="./stryker-reports-out/pr-comment-current.md"
+          history_table=$(sed -n '/<!--HISTORY-->/, /<!--HISTORY-END-->/ { //!p; }' "$file")
+          echo "$history_table" > ./stryker-reports-out/pr-comment-current-history.md
+          cat ./stryker-reports-out/pr-comment-current-history.md
 
       - name: Extract Issue Comment Number
         run: |
