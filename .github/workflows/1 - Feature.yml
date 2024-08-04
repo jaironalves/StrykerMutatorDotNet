@@ -10,9 +10,7 @@ permissions:
 
 jobs:
   ci-config:
-    uses: ./.github/workflows/ci-config-v2.yml   
-    secrets:
-      token: ${{ secrets.GITHUB_TOKEN }}
+    uses: ./.github/workflows/ci-config-v2.yml  
 
   ci-dotnet-stryker:
     uses: ./.github/workflows/ci-dotnet-stryker.yml
