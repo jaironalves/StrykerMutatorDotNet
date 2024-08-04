@@ -1,7 +1,7 @@
 name: CI DotNet Stryker
 
 on:  
-  workflow_call:
+  workflow_call
 
 permissions:
   pull-requests: write 
