@@ -38,14 +38,14 @@ jobs:
         run: |
           if [ -f ./stryker-reports-out/mutation-report.md ]; then
             echo "O arquivo mutation-report.md existe."
-            echo "result=true" >> $GITHUB_ENV
+            echo "result=true" >> $GITHUB_OUTPUT
           else
             echo "O arquivo mutation-report.md não existe."
           fi 
       
       - name: Extract Mutation Report Markdown Summary Table
         id: mutation-report-md-extract-summary-table
-        if: steps.check-mutation-report-md.outputs.mresult = 'true'
+        if: steps.check-mutation-report-md.outputs.result == 'true'
         run: |
           file="./stryker-reports-out/mutation-report.md"
           table_content=$(sed -n '/# Mutation Testing Summary/,/## The final mutation score is/ {/^|/p}' "$file")
