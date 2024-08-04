@@ -1,10 +1,14 @@
 name: CI DotNet Stryker
 
-on:  
-  workflow_call
+on:
+  workflow_call:
+    inputs:
+      config-path:       
+        type: string
+        default: '.ci-github.yml'   
 
 jobs:
-  stryker-run:    
+  stryker-run:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -37,7 +41,7 @@ jobs:
             echo "O arquivo mutation-report.md existe."
             echo "result=true" >> $GITHUB_OUTPUT
           else
-            echo "O arquivo mutation-report.md não existe."
+            echo "O arquivo mutation-report.md nï¿½o existe."
           fi 
       
       - name: Extract Mutation Report Markdown Summary Table
