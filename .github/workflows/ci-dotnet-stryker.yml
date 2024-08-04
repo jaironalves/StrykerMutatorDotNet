@@ -1,11 +1,7 @@
 name: CI DotNet Stryker
 
 on:
-  workflow_call:
-    inputs:
-      config-path:       
-        type: string
-        default: '.ci-github.yml'   
+  workflow_call:  
 
 jobs:
   stryker-run:
