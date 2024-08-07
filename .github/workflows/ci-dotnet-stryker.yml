@@ -66,14 +66,15 @@ jobs:
         id: capture-mutation-score
         run: |
           file="./stryker-results/stryker.log"
-          line=$(grep "The final mutation score is" "stryker.log")
+          line=$(grep "The final mutation score is" "$file")
           mutation_score=$(echo "$line" | awk '{print $8}')
           echo "MUTATION_SCORE=$mutation_score" >> $GITHUB_ENV
   
       - name: Capture Options Threshold
         id: capture-options-threshold
         run: |
-          json=$(grep "\[.*\] Stryker started with options:" "stryker.log" | sed 's/.*options: //' | sed 's/^[ \t]*//;s/[ \t]*$//')
+          file="./stryker-results/stryker.log"
+          json=$(grep "\[.*\] Stryker started with options:" "$file" | sed 's/.*options: //' | sed 's/^[ \t]*//;s/[ \t]*$//')
           if [ -z "$json" ]; then
             threshold_high=80
             threshold_low=60
