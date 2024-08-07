@@ -5,14 +5,22 @@ on:
     inputs:
       pr-comment-mark:       
         type: string
-        default: 'Stryker-Mutation-Comment'  
+        description: 'String to mark the PR comment'
+        default: 'Stryker-Mutation-Comment'
+      results-directory:
+        type: string
+        description: 'Directory to store results'
+        required: false
+        default: 'stryker-results'
 
 jobs:
   stryker-run:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest    
     defaults:
       run:
         working-directory: app
+    env:
+        stryker-results: ${{ inputs.results-directory }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -25,37 +33,39 @@ jobs:
       - name: Install Stryker
         run: dotnet tool install -g dotnet-stryker --version 3.13.2
 
-      - name: Run Stryker
-        run: dotnet stryker -V debug | tee stryker.log
+      - name: Create Results Folder
+        run: mkdir -p stryker-results/reports
 
-      - name: Move Mutation Report
-        run: |
-          mkdir stryker-reports-out
-          ls -a
-          mv ./StrykerOutput/*/reports/*.* ./stryker-reports-out/
+      - name: Run Stryker
+        run: dotnet stryker -V debug | tee ./stryker-results/stryker.log
+
+      - name: Move Mutation Reports
+        run: |         
+         mv ./StrykerOutput/*/reports/*.* stryker-results/reports/
 
       - name: Check Mutation Report Markdown
-        id: check-mutation-report-md
+        id: check-report-md
         run: |
-          if [ -f ./stryker-reports-out/mutation-report.md ]; then
+          if [ -f ./stryker-results/mutation-report.md ]; then
             echo "O arquivo mutation-report.md existe."
             echo "result=true" >> $GITHUB_OUTPUT
           else
-            echo "O arquivo mutation-report.md n�o existe."
+            echo "O arquivo mutation-report.md não existe."
           fi 
       
       - name: Extract Mutation Report Markdown Summary Table
-        id: mutation-report-md-extract-summary-table
-        if: steps.check-mutation-report-md.outputs.result == 'true'
+        id: report-md-extract-summary-table
+        if: steps.check-report-md.outputs.result == 'true'
         run: |
-          file="./stryker-reports-out/mutation-report.md"
+          file="./stryker-results/mutation-report.md"
           table_content=$(sed -n '/# Mutation Testing Summary/,/## The final mutation score is/ {/^|/p}' "$file")
-          echo "$table_content" > ./stryker-reports-out/mutation-report-summary-table.md
-          cat ./stryker-reports-out/mutation-report-summary-table.md
+          echo "$table_content" > ./stryker-results/mutation-report-summary-table.md
+          cat ./stryker-results/mutation-report-summary-table.md
 
       - name: Capture Mutation Score
         id: capture-mutation-score
         run: |
+          file="./stryker-results/stryker.log"
           line=$(grep "The final mutation score is" "stryker.log")
           mutation_score=$(echo "$line" | awk '{print $8}')
           echo "MUTATION_SCORE=$mutation_score" >> $GITHUB_ENV
@@ -67,12 +77,15 @@ jobs:
           if [ -z "$json" ]; then
             threshold_high=80
             threshold_low=60
+            threshold_break=0
           else        
             threshold_high=$(echo "$json" | jq '.Thresholds.High // 80')
             threshold_low=$(echo "$json" | jq '.Thresholds.Low // 60')
+            threshold_break=$(echo "$json" | jq '.Thresholds.Break // 0')
           fi
           echo "THRESHOLD_HIGH=$threshold_high" >> $GITHUB_ENV
           echo "THRESHOLD_LOW=$threshold_low" >> $GITHUB_ENV
+          echo "THRESHOLD_BREAK=$threshold_break" >> $GITHUB_ENV
 
       - name: Show Mutation Score
         run: |
@@ -86,7 +99,7 @@ jobs:
       - name: Create Comment
         id: create-comment-path
         run: |
-          cat stryker-reports-out/mutation-report.md
+          cat stryker-results/mutation-report.md
        
       - name: Get Comments JSON
         run: gh pr view ${{ steps.finder.outputs.pr }} -c --json comments > comments.json
@@ -100,8 +113,8 @@ jobs:
           if [ -n "$comment_body" ]; then
             echo "Stryker PR Comment exists."
             echo "result=true" >> $GITHUB_OUTPUT
-            echo "$comment_body" > ./stryker-reports-out/pr-comment-current.md
-            cat ./stryker-reports-out/pr-comment-current.md
+            echo "$comment_body" > ./stryker-results/pr-comment-current.md
+            cat ./stryker-results/pr-comment-current.md
           else
             echo "No Stryker PR comment found."
             echo "result=false" >> $GITHUB_OUTPUT
@@ -110,10 +123,10 @@ jobs:
       - name: Extract History Section
         if: steps.try-get-pr-comment-current.outputs.result == 'true'
         run: |
-          file="./stryker-reports-out/pr-comment-current.md"
+          file="./stryker-results/pr-comment-current.md"
           history_table=$(sed -n '/<!--HISTORY-->/, /<!--HISTORY-END-->/ { //!p; }' "$file")
-          echo "$history_table" > ./stryker-reports-out/pr-comment-current-history.md
-          cat ./stryker-reports-out/pr-comment-current-history.md
+          echo "$history_table" > ./stryker-results/pr-comment-current-history.md
+          cat ./stryker-results/pr-comment-current-history.md
 
       - name: Extract Issue Comment Number
         run: |
