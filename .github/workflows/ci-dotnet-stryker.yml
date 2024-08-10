@@ -41,7 +41,7 @@ jobs:
 
       - name: Move Mutation Reports
         run: |         
-         mv ./StrykerOutput/*/reports/*.* stryker-results/reports/
+         mv ./StrykerOutput/*/reports/*.* ./stryker-results/reports/
 
       - name: Check Mutation Report Markdown
         id: check-report-md
@@ -105,10 +105,10 @@ jobs:
           }" > ./stryker-results/stryker.json
         
       - name: Upload Stryker Results
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: stryker-results
-          path: ./stryker-results/
+          path: stryker-results/
 
       - uses: jwalton/gh-find-current-pr@v1
         id: finder
@@ -116,7 +116,7 @@ jobs:
       - name: Create Comment
         id: create-comment-path
         run: |
-          cat stryker-results/reports/mutation-report.md
+          cat ./stryker-results/reports/mutation-report.md
        
       - name: Get Comments JSON
         run: gh pr view ${{ steps.finder.outputs.pr }} -c --json comments > comments.json
