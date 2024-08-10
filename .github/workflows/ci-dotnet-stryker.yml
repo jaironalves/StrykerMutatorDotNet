@@ -37,22 +37,27 @@ jobs:
         id: results-folder
         run: |
           mkdir -p ${{ github.workspace }}/stryker-results/reports
+
           echo "path=${{ github.workspace }}/stryker-results/" >> $GITHUB_OUTPUT
+          echo "path-file-log=${{ github.workspace }}/stryker-results/stryker.log" >> $GITHUB_OUTPUT
+          echo "path-file-summary-table=${{ github.workspace }}/stryker-results/mutation-report-summary-table.md" >> $GITHUB_OUTPUT
+
           echo "path-reports=${{ github.workspace }}/stryker-results/reports/" >> $GITHUB_OUTPUT
+          echo "path-reports-file-md=${{ github.workspace }}/stryker-results/reports/mutation-report.md" >> $GITHUB_OUTPUT
 
       - name: Run Stryker        
-        run: dotnet stryker -V debug | tee ${{ steps.results-folder.outputs.path }}/stryker.log
+        run: dotnet stryker -V debug | tee ${{ github.workspace }}/stryker-results/stryker.log
 
       - name: Move Mutation Reports
         run: |         
-         mv ./StrykerOutput/*/reports/*.* ${{ steps.results-folder.outputs.path-reports }}
+         mv ./StrykerOutput/*/reports/*.* ${{ github.workspace }}/stryker-results/reports/
 
       - name: Check Mutation Report Markdown
         id: check-report-md
         run: |
-          if [ -f ./stryker-results/mutation-report.md ]; then
+          if [ -f ${{ github.workspace }}/stryker-results/reports/mutation-report.md ]; then
             echo "O arquivo mutation-report.md existe."
-            echo "result=true" >> $GITHUB_OUTPUT
+            echo "result=true" >> $GITHUB_OUTPUT            
           else
             echo "O arquivo mutation-report.md não existe."
           fi 
@@ -61,15 +66,17 @@ jobs:
         id: report-md-extract-summary-table
         if: steps.check-report-md.outputs.result == 'true'
         run: |
-          file="./stryker-results/mutation-report.md"
+          file="${{ github.workspace }}/stryker-results/reports/mutation-report.md"
+          file-output="${{ github.workspace }}/stryker-results/reports/mutation-report-summary-table.md"
+
           table_content=$(sed -n '/# Mutation Testing Summary/,/## The final mutation score is/ {/^|/p}' "$file")
-          echo "$table_content" > ./stryker-results/mutation-report-summary-table.md
-          cat ./stryker-results/mutation-report-summary-table.md
+          echo "$table_content" > "$file-output"
+          cat "$file-output"
 
       - name: Capture Mutation Score
         id: capture-mutation-score
         run: |
-          file="./stryker-results/stryker.log"
+          file="${{ github.workspace }}/stryker-results/stryker.log"
           line=$(grep "The final mutation score is" "$file")
           mutation_score=$(echo "$line" | awk '{print $8}')
           echo "MUTATION_SCORE=$mutation_score" >> $GITHUB_ENV
@@ -77,7 +84,7 @@ jobs:
       - name: Capture Options Threshold
         id: capture-options-threshold
         run: |
-          file="./stryker-results/stryker.log"
+          file="${{ github.workspace }}/stryker-results/stryker.log"
           json=$(grep "\[.*\] Stryker started with options:" "$file" | sed 's/.*options: //' | sed 's/^[ \t]*//;s/[ \t]*$//')
           if [ -z "$json" ]; then
             threshold_high=80
@@ -101,19 +108,20 @@ jobs:
 
       - name: Create Stryker Json Result
         run: |
+          file-output="${{ github.workspace }}/stryker-results/stryker.json"
           echo "{
             \"mutation_score\": \"$MUTATION_SCORE\",
             \"threshold_high\": \"$THRESHOLD_HIGH\",
             \"threshold_low\": \"$THRESHOLD_LOW\",
             \"threshold_break\": \"$THRESHOLD_BREAK\"
-          }" > ./stryker-results/stryker.json
-          ls -la ./stryker-results/
+          }" > "$file-output"
+          ls -la ${{ github.workspace }}/stryker-results
         
       - name: Upload Stryker Results        
         uses: actions/upload-artifact@v4        
         with:
           name: stryker-results
-          path: ../stryker-results/
+          path: ${{ github.workspace }}/stryker-results/
 
       - uses: jwalton/gh-find-current-pr@v1
         id: finder
