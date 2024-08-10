@@ -138,7 +138,9 @@ jobs:
           else
             echo "MUTATION_SCORE_HINT=Danger" >> $GITHUB_ENV
           fi
-          
+
+      - name: Show Mutation Score        
+        run: |  
           echo "Mutation Score: $MUTATION_SCORE"
           echo "Threshold High: $THRESHOLD_HIGH"
           echo "Threshold Low: $THRESHOLD_LOW"
