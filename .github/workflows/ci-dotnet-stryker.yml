@@ -3,22 +3,22 @@ name: CI DotNet Stryker
 on:
   workflow_call:
     inputs:
-      pr-comment-mark:       
+      pr-comment-mark:
         type: string
-        description: 'String to mark the PR comment'
-        default: 'Stryker-Mutation-Comment'
+        description: "String to mark the PR comment"
+        default: "Stryker-Mutation-Comment"
       results-directory:
         type: string
-        description: 'Directory to store results'
+        description: "Directory to store results"
         required: false
-        default: 'stryker-results'
+        default: "stryker-results"
 
 jobs:
   stryker-run:
-    runs-on: ubuntu-latest    
+    runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: app    
+        working-directory: app
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -26,7 +26,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: '8.x'
+          dotnet-version: "8.x"
 
       - name: Install Stryker
         run: dotnet tool install -g dotnet-stryker --version 3.13.2
@@ -43,13 +43,13 @@ jobs:
           echo "path-reports=${{ github.workspace }}/stryker-results/reports/" >> $GITHUB_OUTPUT
           echo "path-reports-file-md=${{ github.workspace }}/stryker-results/reports/mutation-report.md" >> $GITHUB_OUTPUT
 
-      - name: Run Stryker        
+      - name: Run Stryker
         run: dotnet stryker -V debug | tee ${{ github.workspace }}/stryker-results/stryker.log
 
       - name: Move Mutation Reports
-        run: |         
-         mv ./StrykerOutput/*/reports/*.* ${{ github.workspace }}/stryker-results/reports/
-      
+        run: |
+          mv ./StrykerOutput/*/reports/*.* ${{ github.workspace }}/stryker-results/reports/
+
       - name: Capture Mutation Score
         id: capture-mutation-score
         run: |
@@ -60,7 +60,7 @@ jobs:
           }
           mutation_score=$(echo "$line" | awk '{print $8}' | format_number)
           echo "MUTATION_SCORE=$mutation_score" >> $GITHUB_ENV
-  
+
       - name: Capture Options Threshold
         id: capture-options-threshold
         run: |
@@ -95,7 +95,7 @@ jobs:
           echo "Mutation Score Hint: $MUTATION_SCORE_HINT"
           echo "Threshold High: $THRESHOLD_HIGH"
           echo "Threshold Low: $THRESHOLD_LOW"
-          echo "Threshold Break: $THRESHOLD_BREAK"          
+          echo "Threshold Break: $THRESHOLD_BREAK"
 
       - name: Create Stryker Json Result
         run: |
@@ -109,16 +109,16 @@ jobs:
             \"threshold_break\": $THRESHOLD_BREAK
           }" > "$file_result"
           ls -la ${{ github.workspace }}/stryker-results
-        
-      - name: Upload Stryker Results        
-        uses: actions/upload-artifact@v4        
+
+      - name: Upload Stryker Results
+        uses: actions/upload-artifact@v4
         with:
           name: stryker-results
-          path: ${{ github.workspace }}/stryker-results/     
+          path: ${{ github.workspace }}/stryker-results/
 
   stryker-comment:
     needs: stryker-run
-    runs-on: ubuntu-latest    
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -129,7 +129,7 @@ jobs:
           name: stryker-results
           path: ${{ github.workspace }}/stryker-results/
 
-      - name: Capture Results        
+      - name: Capture Results
         run: |
           file="${{ github.workspace }}/stryker-results/stryker.json"
           mutation_score=$(jq '.mutation_score' "$file")
@@ -142,10 +142,10 @@ jobs:
           echo "MUTATION_SCORE_HINT=$mutation_score_hint" >> $GITHUB_ENV
           echo "THRESHOLD_HIGH=$threshold_high" >> $GITHUB_ENV
           echo "THRESHOLD_LOW=$threshold_low" >> $GITHUB_ENV
-          echo "THRESHOLD_BREAK=$threshold_break" >> $GITHUB_ENV      
-     
-      - name: Show Mutation Score        
-        run: |  
+          echo "THRESHOLD_BREAK=$threshold_break" >> $GITHUB_ENV
+
+      - name: Show Mutation Score
+        run: |
           echo "Mutation Score: $MUTATION_SCORE"
           echo "Mutation Score Hint: $MUTATION_SCORE_HINT"
           echo "Threshold High: $THRESHOLD_HIGH"
@@ -153,9 +153,9 @@ jobs:
           echo "Threshold Break: $THRESHOLD_BREAK"
           echo "Mutation Score Hint: $MUTATION_SCORE_HINT"
 
-      - name: Create Comment Folder        
+      - name: Create Comment Folder
         run: |
-          mkdir -p ${{ github.workspace }}/stryker-comment  
+          mkdir -p ${{ github.workspace }}/stryker-comment
 
       - name: Check Mutation Report Markdown
         id: check-report-md
@@ -165,33 +165,39 @@ jobs:
             echo "result=true" >> $GITHUB_OUTPUT            
           else
             echo "O arquivo mutation-report.md não existe."
-          fi 
-      
-      - name: Extract Mutation Report Markdown Summary Table
-        id: report-md-extract-summary-table
+          fi
+          
+      - name: Create Comment Markdown Content Details
         if: steps.check-report-md.outputs.result == 'true'
         run: |
           file="${{ github.workspace }}/stryker-results/reports/mutation-report.md"
-          file_result="${{ github.workspace }}/stryker-comment/pr-summary-table.md"
+          file_result="${{ github.workspace }}/stryker-comment/pr-comment-content-details.md"
 
           table_content=$(sed -n '/# Mutation Testing Summary/,/## The final mutation score is/ {/^|/p}' "$file")
 
           if [ -n "$table_content" ]; then
             echo "Summary table exists."
-            echo "result=true" >> $GITHUB_OUTPUT
-            echo "$table_content" > "$file_result"
-            cat "$file_result"
+            echo "
+              <details>
+              
+              <summary>Files summary</summary>
+
+              $table_content
+
+              </details>
+            " > "$file_result" 
           else
             echo "No summary table found."
-            echo "result=false" >> $GITHUB_OUTPUT
-          fi  
+            echo "" > "$file_result"
+          fi
+             
+          cat "$file_result"
 
-
-      - name: Create PR Markdown Result Content                
+      - name: Create Comment Markdown Result Content
         run: |
           file="${{ github.workspace }}/stryker-results/reports/mutation-report.md"
           file_details="${{ github.workspace }}/stryker-comment/pr-summary-table.md"
-  
+
           if [ "$MUTATION_SCORE_HINT" == "High" ]; then
             static_badge_color="green"
           elif [ "$MUTATION_SCORE_HINT" == "Medium" ]; then
@@ -203,9 +209,19 @@ jobs:
           static_badge="![Static Badge](https://img.shields.io/badge/$MUTATION_SCORE%25-Mutation%20Tests-$static_badge_color)"
 
           if [ ${{ steps.report-md-extract-summary-table.outputs.result }} == 'true' ]; then
+            echo "
+              # Mutation Testing Summary $static_badge
+            
+              $details
+
+              ## The final mutation score is $MUTATION_SCORE%
+
+              ### *Coverage Thresholds: high:$THRESHOLD_HIGH low:$THRESHOLD_LOW break:$THRESHOLD_BREAK*
+            " > ${{ github.workspace }}/stryker-results/pr-comment-result-content-details.md 
+
             details="<details><summary>Files summary</summary>$(cat $file_details)</details>"
           else
-            details=""  
+            echo ""  
           fi
 
           echo "
@@ -215,11 +231,10 @@ jobs:
 
             ## The final mutation score is $MUTATION_SCORE%
 
-            ### *Coverage Thresholds: high:$THRESHOLD_HIGH low:THRESHOLD_LOW break:THRESHOLD_BREAK*
+            ### *Coverage Thresholds: high:$THRESHOLD_HIGH low:$THRESHOLD_LOW break:$THRESHOLD_BREAK*
           " > ${{ github.workspace }}/stryker-results/pr-comment-result-content.md
 
-          cat ${{ github.workspace }}/stryker-results/pr-comment-result-content.md     
-          
+          cat ${{ github.workspace }}/stryker-results/pr-comment-result-content.md
 
       - uses: jwalton/gh-find-current-pr@v1
         id: finder
@@ -228,12 +243,12 @@ jobs:
         id: create-comment-path
         run: |
           cat ${{ github.workspace }}/stryker-results/reports/mutation-report.md
-       
+
       - name: Get Comments JSON
         run: gh pr view ${{ steps.finder.outputs.pr }} -c --json comments > comments.json
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   
- 
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Try Get PR Comment Current
         id: try-get-pr-comment-current
         run: |
@@ -248,7 +263,7 @@ jobs:
             echo "No Stryker PR comment found."
             echo "result=false" >> $GITHUB_OUTPUT
           fi
-            
+
       - name: Extract History Section
         if: steps.try-get-pr-comment-current.outputs.result == 'true'
         run: |
@@ -263,4 +278,4 @@ jobs:
           url=$(jq -r '.comments[] | select(.body | contains("<!-- Stryker-Mutation-Comment -->")) | .url' comments.json)
           comment_id=$(echo $url | sed -n 's/.*#issuecomment-\([0-9]*\).*/\1/p')
           echo "Comment ID: $comment_id"
-          echo "comment_id=$comment_id" >> $GITHUB_ENV          
+          echo "comment_id=$comment_id" >> $GITHUB_ENV
