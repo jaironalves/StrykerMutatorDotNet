@@ -108,7 +108,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: stryker-results
-          path: /stryker-results
+          path: ./stryker-results/
 
       - uses: jwalton/gh-find-current-pr@v1
         id: finder
