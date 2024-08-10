@@ -93,14 +93,30 @@ jobs:
           echo "Mutation Score: $MUTATION_SCORE"
           echo "Threshold High: $THRESHOLD_HIGH"
           echo "Threshold Low: $THRESHOLD_LOW"
-      
+          echo "Threshold Break: $THRESHOLD_BREAK"
+
+      - name: Create Stryker Json Result
+        run: |
+          echo "{
+            \"mutation_score\": \"$MUTATION_SCORE\",
+            \"threshold_high\": \"$THRESHOLD_HIGH\",
+            \"threshold_low\": \"$THRESHOLD_LOW\",
+            \"threshold_break\": \"$THRESHOLD_BREAK\"
+          }" > ./stryker-results/stryker.json
+        
+      - name: Upload Stryker Results
+        uses: actions/upload-artifact@v2
+        with:
+          name: stryker-results
+          path: /stryker-results
+
       - uses: jwalton/gh-find-current-pr@v1
         id: finder
 
       - name: Create Comment
         id: create-comment-path
         run: |
-          cat stryker-results/mutation-report.md
+          cat stryker-results/reports/mutation-report.md
        
       - name: Get Comments JSON
         run: gh pr view ${{ steps.finder.outputs.pr }} -c --json comments > comments.json
