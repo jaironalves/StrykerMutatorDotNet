@@ -177,7 +177,7 @@ jobs:
 
           if [ -n "$table_content" ]; then
             echo "Summary table exists."
-            echo "<details>\n\n<summary>Files summary</summary>\n\n$table_content\n\n</details>" > "$file_result"
+            echo "<details>$'\n'$'\n'<summary>Files summary</summary>$'\n'$'\n'$table_content$'\n'$'\n'</details>" > "$file_result"
           else
             echo "No summary table found."
             echo "" > "$file_result"
