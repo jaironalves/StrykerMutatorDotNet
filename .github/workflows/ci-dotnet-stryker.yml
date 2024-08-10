@@ -110,10 +110,10 @@ jobs:
         run: |
           file_result="${{ github.workspace }}/stryker-results/stryker.json"
           echo "{
-            \"mutation_score\": \"$MUTATION_SCORE\",
-            \"threshold_high\": \"$THRESHOLD_HIGH\",
-            \"threshold_low\": \"$THRESHOLD_LOW\",
-            \"threshold_break\": \"$THRESHOLD_BREAK\"
+            \"mutation_score\": $MUTATION_SCORE,
+            \"threshold_high\": $THRESHOLD_HIGH,
+            \"threshold_low\": $THRESHOLD_LOW,
+            \"threshold_break\": $THRESHOLD_BREAK
           }" > "$file_result"
           ls -la ${{ github.workspace }}/stryker-results
         
@@ -129,7 +129,7 @@ jobs:
       - name: Create Comment
         id: create-comment-path
         run: |
-          cat ./stryker-results/reports/mutation-report.md
+          cat ${{ github.workspace }}/stryker-results/reports/mutation-report.md
        
       - name: Get Comments JSON
         run: gh pr view ${{ steps.finder.outputs.pr }} -c --json comments > comments.json
@@ -139,12 +139,13 @@ jobs:
       - name: Try Get PR Comment Current
         id: try-get-pr-comment-current
         run: |
+          file="${{ github.workspace }}/stryker-results/pr-comment-current.md"
           comment_body=$(jq -r '.comments[] | select(.body | contains("<!-- ${{ inputs.pr-comment-mark }} -->")) | .body' comments.json)
           if [ -n "$comment_body" ]; then
             echo "Stryker PR Comment exists."
             echo "result=true" >> $GITHUB_OUTPUT
-            echo "$comment_body" > ./stryker-results/pr-comment-current.md
-            cat ./stryker-results/pr-comment-current.md
+            echo "$comment_body" > "$file"
+            cat "$file"
           else
             echo "No Stryker PR comment found."
             echo "result=false" >> $GITHUB_OUTPUT
@@ -153,10 +154,11 @@ jobs:
       - name: Extract History Section
         if: steps.try-get-pr-comment-current.outputs.result == 'true'
         run: |
-          file="./stryker-results/pr-comment-current.md"
+          file="${{ github.workspace }}/stryker-results/pr-comment-current.md"
+          file_result="${{ github.workspace }}/stryker-results/pr-comment-current-history.md"
           history_table=$(sed -n '/<!--HISTORY-->/, /<!--HISTORY-END-->/ { //!p; }' "$file")
-          echo "$history_table" > ./stryker-results/pr-comment-current-history.md
-          cat ./stryker-results/pr-comment-current-history.md
+          echo "$history_table" > "$file_result"
+          cat "$file_result"
 
       - name: Extract Issue Comment Number
         run: |
