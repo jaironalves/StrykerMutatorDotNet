@@ -142,7 +142,7 @@ jobs:
           echo "Threshold High: $THRESHOLD_HIGH"
           echo "Threshold Low: $THRESHOLD_LOW"
           echo "Threshold Break: $THRESHOLD_BREAK"
-           echo "Mutation Score Hint: $MUTATION_SCORE_HINT"
+          echo "Mutation Score Hint: $MUTATION_SCORE_HINT"
 
       - name: Check Mutation Report Markdown
         id: check-report-md
