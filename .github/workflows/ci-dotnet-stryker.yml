@@ -129,14 +129,12 @@ jobs:
   stryker-comment:
     needs: stryker-run
     runs-on: ubuntu-latest    
-    env:
-        stryker-results: ${{ github.workspace }}/
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Download Stryker Results
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: stryker-results
           path: ${{ github.workspace }}/stryker-results
