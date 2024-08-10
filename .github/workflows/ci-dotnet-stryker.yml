@@ -179,11 +179,11 @@ jobs:
             echo "Summary table exists."
             echo "<details>
 
-            <summary>Files summary</summary>
+          <summary>Files summary</summary>
             
-            $table_content
+          $table_content
             
-            </details>" > "$file_result"
+          </details>" > "$file_result"
           else
             echo "No summary table found."
             echo "" > "$file_result"
