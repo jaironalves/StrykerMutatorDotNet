@@ -101,7 +101,7 @@ jobs:
         run: |
           file_result="${{ github.workspace }}/stryker-results/stryker.json"
           echo "{
-            \"mutation_run\": ${{ github.run_number }}-${{ github.run_attempt }},
+            \"mutation_run\": \"${{ github.run_number }}-${{ github.run_attempt }}\",
             \"mutation_score\": $MUTATION_SCORE,
             \"mutation_score_hint\": \"$MUTATION_SCORE_HINT\",
             \"threshold_high\": $THRESHOLD_HIGH,
