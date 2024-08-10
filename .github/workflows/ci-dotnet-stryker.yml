@@ -194,7 +194,7 @@ jobs:
       - name: Create Comment Markdown Result Content
         run: |
           file="${{ github.workspace }}/stryker-results/reports/mutation-report.md"
-          file_details="${{ github.workspace }}/stryker-comment/pr-summary-table.md"
+          file_details="${{ github.workspace }}/stryker-comment/pr-comment-content-details.md"
 
           if [ "$MUTATION_SCORE_HINT" == "High" ]; then
             static_badge_color="green"
@@ -206,30 +206,13 @@ jobs:
 
           static_badge="![Static Badge](https://img.shields.io/badge/$MUTATION_SCORE%25-Mutation%20Tests-$static_badge_color)"
 
-          if [ ${{ steps.report-md-extract-summary-table.outputs.result }} == 'true' ]; then
-            echo "
-              # Mutation Testing Summary $static_badge
+          echo "# Mutation Testing Summary $static_badge
             
-              $details
+          $(cat $file_details)
 
-              ## The final mutation score is $MUTATION_SCORE%
+          ## The final mutation score is $MUTATION_SCORE%
 
-              ### *Coverage Thresholds: high:$THRESHOLD_HIGH low:$THRESHOLD_LOW break:$THRESHOLD_BREAK*
-            " > ${{ github.workspace }}/stryker-results/pr-comment-result-content-details.md 
-
-            details="<details><summary>Files summary</summary>$(cat $file_details)</details>"
-          else
-            echo ""  
-          fi
-
-          echo "
-            # Mutation Testing Summary $static_badge
-            
-            $details
-
-            ## The final mutation score is $MUTATION_SCORE%
-
-            ### *Coverage Thresholds: high:$THRESHOLD_HIGH low:$THRESHOLD_LOW break:$THRESHOLD_BREAK*
+          ### *Coverage Thresholds: high:$THRESHOLD_HIGH low:$THRESHOLD_LOW break:$THRESHOLD_BREAK*
           " > ${{ github.workspace }}/stryker-results/pr-comment-result-content.md
 
           cat ${{ github.workspace }}/stryker-results/pr-comment-result-content.md
