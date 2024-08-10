@@ -79,18 +79,31 @@ jobs:
           echo "THRESHOLD_LOW=$threshold_low" >> $GITHUB_ENV
           echo "THRESHOLD_BREAK=$threshold_break" >> $GITHUB_ENV
 
+      - name: Calculate Mutation Score Hint
+        run: |
+          if [ "$MUTATION_SCORE" -ge "$THRESHOLD_HIGH" ]; then
+            echo "MUTATION_SCORE_HINT=High" >> $GITHUB_ENV
+          elif [ "$MUTATION_SCORE" -lt "$THRESHOLD_HIGH" ] && [ "$MUTATION_SCORE" -ge "$THRESHOLD_LOW" ]; then
+            echo "MUTATION_SCORE_HINT=Medium" >> $GITHUB_ENV
+          else
+            echo "MUTATION_SCORE_HINT=Low" >> $GITHUB_ENV
+          fi
+
       - name: Show Mutation Score
         run: |
           echo "Mutation Score: $MUTATION_SCORE"
+          echo "Mutation Score Hint: $MUTATION_SCORE_HINT"
           echo "Threshold High: $THRESHOLD_HIGH"
           echo "Threshold Low: $THRESHOLD_LOW"
-          echo "Threshold Break: $THRESHOLD_BREAK"
+          echo "Threshold Break: $THRESHOLD_BREAK"          
 
       - name: Create Stryker Json Result
         run: |
           file_result="${{ github.workspace }}/stryker-results/stryker.json"
           echo "{
+            \"mutation_run\": ${{ github.run_number }}-${{ github.run_attempt }},
             \"mutation_score\": $MUTATION_SCORE,
+            \"mutation_score_hint\": \"$MUTATION_SCORE_HINT\",
             \"threshold_high\": $THRESHOLD_HIGH,
             \"threshold_low\": $THRESHOLD_LOW,
             \"threshold_break\": $THRESHOLD_BREAK
@@ -120,28 +133,21 @@ jobs:
         run: |
           file="${{ github.workspace }}/stryker-results/stryker.json"
           mutation_score=$(jq '.mutation_score' "$file")
+          mutation_score_hint=$(jq '.mutation_score_hint' "$file")
           threshold_high=$(jq '.threshold_high' "$file")
           threshold_low=$(jq '.threshold_low' "$file")
           threshold_break=$(jq '.threshold_break' "$file")
 
           echo "MUTATION_SCORE=$mutation_score" >> $GITHUB_ENV
+          echo "MUTATION_SCORE_HINT=$mutation_score_hint" >> $GITHUB_ENV
           echo "THRESHOLD_HIGH=$threshold_high" >> $GITHUB_ENV
           echo "THRESHOLD_LOW=$threshold_low" >> $GITHUB_ENV
-          echo "THRESHOLD_BREAK=$threshold_break" >> $GITHUB_ENV
-      
-      - name: Calculate Mutation Score Hint
-        run: |
-          if [ "$MUTATION_SCORE" -ge "$THRESHOLD_HIGH" ]; then
-            echo "MUTATION_SCORE_HINT=Awesome" >> $GITHUB_ENV
-          elif [ "$MUTATION_SCORE" -lt "$THRESHOLD_HIGH" ] && [ "$MUTATION_SCORE" -ge "$THRESHOLD_LOW" ]; then
-            echo "MUTATION_SCORE_HINT=Warning" >> $GITHUB_ENV
-          else
-            echo "MUTATION_SCORE_HINT=Danger" >> $GITHUB_ENV
-          fi
-
+          echo "THRESHOLD_BREAK=$threshold_break" >> $GITHUB_ENV      
+     
       - name: Show Mutation Score        
         run: |  
           echo "Mutation Score: $MUTATION_SCORE"
+          echo "Mutation Score Hint: $MUTATION_SCORE_HINT"
           echo "Threshold High: $THRESHOLD_HIGH"
           echo "Threshold Low: $THRESHOLD_LOW"
           echo "Threshold Break: $THRESHOLD_BREAK"
@@ -162,11 +168,54 @@ jobs:
         if: steps.check-report-md.outputs.result == 'true'
         run: |
           file="${{ github.workspace }}/stryker-results/reports/mutation-report.md"
-          file_result="${{ github.workspace }}/stryker-results/reports/mutation-report-summary-table.md"
+          file_result="${{ github.workspace }}/stryker-comment/pr-summary-table.md"
 
           table_content=$(sed -n '/# Mutation Testing Summary/,/## The final mutation score is/ {/^|/p}' "$file")
-          echo "$table_content" > "$file_result"
-          cat "$file_result"
+
+          if [ -n "$table_content" ]; then
+            echo "Summary table exists."
+            echo "result=true" >> $GITHUB_OUTPUT
+            echo "$table_content" > "$file_result"
+           cat "$file_result"
+          else
+            echo "No summary table found."
+            echo "result=false" >> $GITHUB_OUTPUT
+          fi  
+
+
+      - name: Create PR Markdown Result Content                
+        run: |
+          file="${{ github.workspace }}/stryker-results/reports/mutation-report.md"
+          file_details="${{ github.workspace }}/stryker-comment/pr-summary-table.md"
+  
+          if [ "$MUTATION_SCORE_HINT" == "High" ]; then
+            static_badge_color="green"
+          elif [ "$MUTATION_SCORE_HINT" == "Medium" ]; then
+            static_badge_color="yellow"
+          else
+            static_badge_color="red"
+          fi 
+
+          static_badge="![Static Badge](https://img.shields.io/badge/$MUTATION_SCORE%25-Mutation%20Tests-$static_badge_color)"
+
+          if [ ${{ steps.report-md-extract-summary-table.outputs.result }} == 'true' ]; then
+            details="<details><summary>Files summary</summary>$(cat $file_details)</details>"
+          else
+            details=""  
+          fi
+
+          echo "
+            # Mutation Testing Summary $static_badge
+            
+            $details
+
+            ## The final mutation score is $MUTATION_SCORE%
+
+            ### *Coverage Thresholds: high:$THRESHOLD_HIGH low:THRESHOLD_LOW break:THRESHOLD_BREAK*
+          " > ${{ github.workspace }}/stryker-results/pr-comment-result-content.md
+
+          cat ${{ github.workspace }}/stryker-results/pr-comment-result-content.md     
+          
 
       - uses: jwalton/gh-find-current-pr@v1
         id: finder
