@@ -103,6 +103,7 @@ jobs:
             \"threshold_low\": \"$THRESHOLD_LOW\",
             \"threshold_break\": \"$THRESHOLD_BREAK\"
           }" > ./stryker-results/stryker.json
+          ls -la ./stryker-results/
         
       - name: Upload Stryker Results
         uses: actions/upload-artifact@v4
