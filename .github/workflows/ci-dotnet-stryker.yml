@@ -136,7 +136,14 @@ jobs:
           elif [ "$MUTATION_SCORE" -lt "$THRESHOLD_HIGH" ] && [ "$MUTATION_SCORE" -ge "$THRESHOLD_LOW" ]; then
             echo "MUTATION_SCORE_HINT=Warning" >> $GITHUB_ENV
           else
-            echo "MUTATION_SCORE_HINT=Danger" >> $GITHUB_ENV         
+            echo "MUTATION_SCORE_HINT=Danger" >> $GITHUB_ENV
+          fi
+          
+          echo "Mutation Score: $MUTATION_SCORE"
+          echo "Threshold High: $THRESHOLD_HIGH"
+          echo "Threshold Low: $THRESHOLD_LOW"
+          echo "Threshold Break: $THRESHOLD_BREAK"
+          echo "Mutation Score Hint: $MUTATION_SCORE_HINT"
 
       - name: Check Mutation Report Markdown
         id: check-report-md
