@@ -20,7 +20,7 @@ jobs:
       run:
         working-directory: app
     env:
-        stryker-results: ${{ inputs.results-directory }}
+        stryker-results: ${{ github.workspace }}/stryker-results
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -34,19 +34,19 @@ jobs:
         run: dotnet tool install -g dotnet-stryker --version 3.13.2
 
       - name: Create Results Folder
-        run: mkdir -p stryker-results/reports
+        run: mkdir -p $stryker-results/reports
 
       - name: Run Stryker
-        run: dotnet stryker -V debug | tee ./stryker-results/stryker.log
+        run: dotnet stryker -V debug | tee $stryker-results/stryker.log
 
       - name: Move Mutation Reports
         run: |         
-         mv ./StrykerOutput/*/reports/*.* ./stryker-results/reports/
+         mv ./StrykerOutput/*/reports/*.* $stryker-results/reports/
 
       - name: Check Mutation Report Markdown
         id: check-report-md
         run: |
-          if [ -f ./stryker-results/mutation-report.md ]; then
+          if [ -f $stryker-results/mutation-report.md ]; then
             echo "O arquivo mutation-report.md existe."
             echo "result=true" >> $GITHUB_OUTPUT
           else
@@ -57,15 +57,15 @@ jobs:
         id: report-md-extract-summary-table
         if: steps.check-report-md.outputs.result == 'true'
         run: |
-          file="./stryker-results/mutation-report.md"
+          file="$stryker-results/mutation-report.md"
           table_content=$(sed -n '/# Mutation Testing Summary/,/## The final mutation score is/ {/^|/p}' "$file")
-          echo "$table_content" > ./stryker-results/mutation-report-summary-table.md
-          cat ./stryker-results/mutation-report-summary-table.md
+          echo "$table_content" > $stryker-results/mutation-report-summary-table.md
+          cat .$stryker-results/mutation-report-summary-table.md
 
       - name: Capture Mutation Score
         id: capture-mutation-score
         run: |
-          file="./stryker-results/stryker.log"
+          file="$stryker-results/stryker.log"
           line=$(grep "The final mutation score is" "$file")
           mutation_score=$(echo "$line" | awk '{print $8}')
           echo "MUTATION_SCORE=$mutation_score" >> $GITHUB_ENV
@@ -73,7 +73,7 @@ jobs:
       - name: Capture Options Threshold
         id: capture-options-threshold
         run: |
-          file="./stryker-results/stryker.log"
+          file="$stryker-results/stryker.log"
           json=$(grep "\[.*\] Stryker started with options:" "$file" | sed 's/.*options: //' | sed 's/^[ \t]*//;s/[ \t]*$//')
           if [ -z "$json" ]; then
             threshold_high=80
@@ -102,14 +102,14 @@ jobs:
             \"threshold_high\": \"$THRESHOLD_HIGH\",
             \"threshold_low\": \"$THRESHOLD_LOW\",
             \"threshold_break\": \"$THRESHOLD_BREAK\"
-          }" > ./stryker-results/stryker.json
-          ls -la ./stryker-results/
+          }" > $stryker-results/stryker.json
+          ls -la $stryker-results
         
       - name: Upload Stryker Results
         uses: actions/upload-artifact@v4
         with:
           name: stryker-results
-          path: ./stryker-results/
+          path: $stryker-results
 
       - uses: jwalton/gh-find-current-pr@v1
         id: finder
