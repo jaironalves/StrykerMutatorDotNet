@@ -18,9 +18,7 @@ jobs:
     runs-on: ubuntu-latest    
     defaults:
       run:
-        working-directory: app
-    env:
-        stryker-results: ${{ github.workspace }}/
+        working-directory: app    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -51,28 +49,7 @@ jobs:
       - name: Move Mutation Reports
         run: |         
          mv ./StrykerOutput/*/reports/*.* ${{ github.workspace }}/stryker-results/reports/
-
-      - name: Check Mutation Report Markdown
-        id: check-report-md
-        run: |
-          if [ -f ${{ github.workspace }}/stryker-results/reports/mutation-report.md ]; then
-            echo "O arquivo mutation-report.md existe."
-            echo "result=true" >> $GITHUB_OUTPUT            
-          else
-            echo "O arquivo mutation-report.md não existe."
-          fi 
       
-      - name: Extract Mutation Report Markdown Summary Table
-        id: report-md-extract-summary-table
-        if: steps.check-report-md.outputs.result == 'true'
-        run: |
-          file="${{ github.workspace }}/stryker-results/reports/mutation-report.md"
-          file_result="${{ github.workspace }}/stryker-results/reports/mutation-report-summary-table.md"
-
-          table_content=$(sed -n '/# Mutation Testing Summary/,/## The final mutation score is/ {/^|/p}' "$file")
-          echo "$table_content" > "$file_result"
-          cat "$file_result"
-
       - name: Capture Mutation Score
         id: capture-mutation-score
         run: |
@@ -137,7 +114,35 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: stryker-results
-          path: ${{ github.workspace }}/stryker-results
+          path: ${{ github.workspace }}/stryker-results/
+
+      - name: Capture Results        
+        run: |
+          file="${{ github.workspace }}/stryker-results/stryker.json"
+          mutation_score=$(jq '.mutation_score' "$file")
+          threshold_high=$(jq '.threshold_high' "$file")
+          threshold_low=$(jq '.threshold_low' "$file")
+          threshold_break=$(jq '.threshold_break' "$file")
+
+          echo "MUTATION_SCORE=$mutation_score" >> $GITHUB_ENV
+          echo "THRESHOLD_HIGH=$threshold_high" >> $GITHUB_ENV
+          echo "THRESHOLD_LOW=$threshold_low" >> $GITHUB_ENV
+          echo "THRESHOLD_BREAK=$threshold_break" >> $GITHUB_ENV
+      
+      - name: Calculate Mutation Score Hint
+        run: |
+          if [ "$MUTATION_SCORE" -ge "$THRESHOLD_HIGH" ]; then
+            echo "MUTATION_SCORE_HINT=Awesome" >> $GITHUB_ENV
+          elif [ "$MUTATION_SCORE" -lt "$THRESHOLD_HIGH" ] && [ "$MUTATION_SCORE" -ge "$THRESHOLD_LOW" ]; then
+            echo "MUTATION_SCORE_HINT=Warning" >> $GITHUB_ENV
+          else
+            echo "MUTATION_SCORE_HINT=Danger" >> $GITHUB_ENV
+
+          echo "Mutation Score: $MUTATION_SCORE"
+          echo "Threshold High: $THRESHOLD_HIGH"
+          echo "Threshold Low: $THRESHOLD_LOW"
+          echo "Threshold Break: $THRESHOLD_BREAK"
+           echo "Mutation Score Hint: $MUTATION_SCORE_HINT"
 
       - name: Check Mutation Report Markdown
         id: check-report-md
@@ -159,59 +164,6 @@ jobs:
           table_content=$(sed -n '/# Mutation Testing Summary/,/## The final mutation score is/ {/^|/p}' "$file")
           echo "$table_content" > "$file_result"
           cat "$file_result"
-
-      - name: Capture Mutation Score
-        id: capture-mutation-score
-        run: |
-          file="${{ github.workspace }}/stryker-results/stryker.log"
-          line=$(grep "The final mutation score is" "$file")
-          format_number() {
-            awk '{printf "%g\n", $1}'
-          }
-          mutation_score=$(echo "$line" | awk '{print $8}' | format_number)
-          echo "MUTATION_SCORE=$mutation_score" >> $GITHUB_ENV
-  
-      - name: Capture Options Threshold
-        id: capture-options-threshold
-        run: |
-          file="${{ github.workspace }}/stryker-results/stryker.log"
-          json=$(grep "\[.*\] Stryker started with options:" "$file" | sed 's/.*options: //' | sed 's/^[ \t]*//;s/[ \t]*$//')
-          if [ -z "$json" ]; then
-            threshold_high=80
-            threshold_low=60
-            threshold_break=0
-          else        
-            threshold_high=$(echo "$json" | jq '.Thresholds.High // 80')
-            threshold_low=$(echo "$json" | jq '.Thresholds.Low // 60')
-            threshold_break=$(echo "$json" | jq '.Thresholds.Break // 0')
-          fi
-          echo "THRESHOLD_HIGH=$threshold_high" >> $GITHUB_ENV
-          echo "THRESHOLD_LOW=$threshold_low" >> $GITHUB_ENV
-          echo "THRESHOLD_BREAK=$threshold_break" >> $GITHUB_ENV
-
-      - name: Show Mutation Score
-        run: |
-          echo "Mutation Score: $MUTATION_SCORE"
-          echo "Threshold High: $THRESHOLD_HIGH"
-          echo "Threshold Low: $THRESHOLD_LOW"
-          echo "Threshold Break: $THRESHOLD_BREAK"
-
-      - name: Create Stryker Json Result
-        run: |
-          file_result="${{ github.workspace }}/stryker-results/stryker.json"
-          echo "{
-            \"mutation_score\": $MUTATION_SCORE,
-            \"threshold_high\": $THRESHOLD_HIGH,
-            \"threshold_low\": $THRESHOLD_LOW,
-            \"threshold_break\": $THRESHOLD_BREAK
-          }" > "$file_result"
-          ls -la ${{ github.workspace }}/stryker-results
-        
-      - name: Upload Stryker Results        
-        uses: actions/upload-artifact@v4        
-        with:
-          name: stryker-results
-          path: ${{ github.workspace }}/stryker-results/
 
       - uses: jwalton/gh-find-current-pr@v1
         id: finder
