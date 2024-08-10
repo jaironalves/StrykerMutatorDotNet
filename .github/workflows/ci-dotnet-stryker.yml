@@ -70,7 +70,7 @@ jobs:
           file-output="${{ github.workspace }}/stryker-results/reports/mutation-report-summary-table.md"
 
           table_content=$(sed -n '/# Mutation Testing Summary/,/## The final mutation score is/ {/^|/p}' "$file")
-          echo "$table_content" > "$file-output"
+          echo "$table_content" > ${{ github.workspace }}/stryker-results/reports/mutation-report-summary-table.md
           cat "$file-output"
 
       - name: Capture Mutation Score
