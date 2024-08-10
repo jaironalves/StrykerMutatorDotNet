@@ -67,11 +67,11 @@ jobs:
         if: steps.check-report-md.outputs.result == 'true'
         run: |
           file="${{ github.workspace }}/stryker-results/reports/mutation-report.md"
-          file-result="${{ github.workspace }}/stryker-results/reports/mutation-report-summary-table.md"
+          file_result="${{ github.workspace }}/stryker-results/reports/mutation-report-summary-table.md"
 
           table_content=$(sed -n '/# Mutation Testing Summary/,/## The final mutation score is/ {/^|/p}' "$file")
-          echo "$table_content" > "file-result"
-          cat "$file-result"
+          echo "$table_content" > "$file_result"
+          cat "$file_result"
 
       - name: Capture Mutation Score
         id: capture-mutation-score
