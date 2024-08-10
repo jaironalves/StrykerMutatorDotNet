@@ -153,6 +153,10 @@ jobs:
           echo "Threshold Break: $THRESHOLD_BREAK"
           echo "Mutation Score Hint: $MUTATION_SCORE_HINT"
 
+      - name: Create Comment Folder        
+        run: |
+          mkdir -p ${{ github.workspace }}/stryker-comment  
+
       - name: Check Mutation Report Markdown
         id: check-report-md
         run: |
@@ -176,7 +180,7 @@ jobs:
             echo "Summary table exists."
             echo "result=true" >> $GITHUB_OUTPUT
             echo "$table_content" > "$file_result"
-           cat "$file_result"
+            cat "$file_result"
           else
             echo "No summary table found."
             echo "result=false" >> $GITHUB_OUTPUT
