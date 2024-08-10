@@ -109,11 +109,18 @@ jobs:
       - name: Create Stryker Json Result
         run: |
           file_result="${{ github.workspace }}/stryker-results/stryker.json"
+          format_number() {
+            awk '{printf "%g\n", $1}'
+          }
+          mutation_score=$(echo $MUTATION_SCORE | format_number)
+          threshold_high=$(echo $THRESHOLD_HIGH | format_number)
+          threshold_low=$(echo $THRESHOLD_LOW | format_number)
+          threshold_break=$(echo $THRESHOLD_BREAK | format_number)
           echo "{
-            \"mutation_score\": $MUTATION_SCORE,
-            \"threshold_high\": $THRESHOLD_HIGH,
-            \"threshold_low\": $THRESHOLD_LOW,
-            \"threshold_break\": $THRESHOLD_BREAK
+            \"mutation_score\": $mutation_score,
+            \"threshold_high\": $threshold_high,
+            \"threshold_low\": $threshold_low,
+            \"threshold_break\": $threshold_break
           }" > "$file_result"
           ls -la ${{ github.workspace }}/stryker-results
         
