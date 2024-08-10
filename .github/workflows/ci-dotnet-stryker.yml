@@ -108,13 +108,13 @@ jobs:
 
       - name: Create Stryker Json Result
         run: |
-          file-output="${{ github.workspace }}/stryker-results/stryker.json"
+          file_result="${{ github.workspace }}/stryker-results/stryker.json"
           echo "{
             \"mutation_score\": \"$MUTATION_SCORE\",
             \"threshold_high\": \"$THRESHOLD_HIGH\",
             \"threshold_low\": \"$THRESHOLD_LOW\",
             \"threshold_break\": \"$THRESHOLD_BREAK\"
-          }" > "$file-output"
+          }" > "$file_result"
           ls -la ${{ github.workspace }}/stryker-results
         
       - name: Upload Stryker Results        
