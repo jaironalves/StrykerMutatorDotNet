@@ -269,7 +269,7 @@ jobs:
           pr_number=$(grep -oP '(?<=<!--STRYKER-PR-)[^>]+(?=-->)' "$file_current")
           badge=$(echo "$title_line" | sed 's/.*!\[Static Badge\]/![Static Badge]/')
           score=$(grep -oP '(?<=The final mutation score is ).*' "$file_current")
-          thresholds=$(echo "$tline" | sed 's/.*high/high/' | sed 's/\*//g')
+          thresholds=$(echo "$thresholds_line" | sed 's/.*high/high/' | sed 's/\*//g')
 
           history_table=$(sed -n '/<!--HISTORY-->/, /<!--HISTORY-END-->/ { //!p; }' "$file_current")
 
