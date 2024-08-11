@@ -267,13 +267,13 @@ jobs:
           thresholds_line=$(grep -oP 'Coverage Thresholds.*high.*' "$file_current")
 
           pr_number=$(grep -oP '(?<=<!--STRYKER-PR-)[^>]+(?=-->)' "$file_current")
-          badge=$(echo "$title_line" | sed 's/.*!\[Static Badge\]/![Static Badge]/')
-          score=$(grep -oP '(?<=The final mutation score is ).*' "$file_current")
-          thresholds=$(echo "$thresholds_line" | sed 's/.*high/high/' | sed 's/\*//g')
+          badge=$(echo "$title_line" | sed 's/.*!\[Static Badge\]/![Static Badge]/' | tr -d '\n')
+          score=$(grep -oP '(?<=The final mutation score is ).*' "$file_current" | tr -d '\n')
+          thresholds=$(echo "$thresholds_line" | sed 's/.*high/high/' | sed 's/\*//g' | tr -d '\n')
 
           history_table=$(sed -n '/<!--HISTORY-->/, /<!--HISTORY-END-->/ { //!p; }' "$file_current")
 
-          history_line="| $pr_number | $thresholds | $score | $badge |"
+          history_line="|$pr_number|$thresholds|$score|$badge|"
 
           if [ -n "$history_table" ]; then
             echo "History section exists."
