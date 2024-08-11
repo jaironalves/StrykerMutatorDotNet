@@ -278,9 +278,8 @@ jobs:
           echo "Score: $score"
           echo "Thresholds: $thresholds"          
 
-          echo "|$pr_number|$thresholds|$score|$badge|" 
-
-          history_line="|$pr_number|$thresholds|$score|$badge|"
+          
+          history_line="|$thresholds|$pr_number|$score|$badge|" 
           
 
           cleaned_history_line=$(echo "$history_line" | sed ':a;N;$!ba;s/\n//g')
