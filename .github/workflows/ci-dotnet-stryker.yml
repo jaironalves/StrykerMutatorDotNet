@@ -282,10 +282,10 @@ jobs:
           history_line="|$pr_number|$thresholds|$score|$badge|" 
           
 
-          cleaned_history_line=$(echo "$history_line" | tr -d '\n' | tr -d '\r')
+          history_line=$(echo "$history_line" | tr -d '\n' | tr -d '\r')
 
           echo $history_line
-          echo $cleaned_history_line
+          #echo $cleaned_history_line
 
           if [ -n "$history_table" ]; then
             echo "History section exists."
