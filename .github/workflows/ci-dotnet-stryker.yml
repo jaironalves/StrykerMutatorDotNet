@@ -116,7 +116,7 @@ jobs:
           name: stryker-results
           path: ${{ github.workspace }}/stryker-results/
 
-  stryker-comment:
+  stryker-report:
     needs: stryker-run
     runs-on: ubuntu-latest
     steps:
@@ -153,9 +153,9 @@ jobs:
           echo "Threshold Break: $THRESHOLD_BREAK"
           echo "Mutation Score Hint: $MUTATION_SCORE_HINT"
 
-      - name: Create Comment Folder
+      - name: Create Report Folder
         run: |
-          mkdir -p ${{ github.workspace }}/stryker-comment
+          mkdir -p ${{ github.workspace }}/stryker-report
 
       - name: Check Mutation Report Markdown
         id: check-report-md
@@ -166,35 +166,37 @@ jobs:
           else
             echo "O arquivo mutation-report.md não existe."
           fi
-          
-      - name: Create Comment Markdown Content Details
-        if: steps.check-report-md.outputs.result == 'true'
+
+      - name: Create Report Files Summary
+        id: create-files-summary
         run: |
-          file="${{ github.workspace }}/stryker-results/reports/mutation-report.md"
-          file_result="${{ github.workspace }}/stryker-comment/pr-comment-content-details.md"
+          file_mutation_report_md="${{ github.workspace }}/stryker-results/reports/mutation-report.md"
+          file_result="${{ github.workspace }}/stryker-report/pr-report-new-files-summary.md"
 
-          table_content=$(sed -n '/# Mutation Testing Summary/,/## The final mutation score is/ {/^|/p}' "$file")
+          if [ -f "$file_mutation_report_md" ]; then
+            echo "Mutation report markdown exists."            
+            table_content=$(sed -n '/# Mutation Testing Summary/,/## The final mutation score is/ {/^|/p}' "$file_mutation_report_md")
+          else
+            echo "Mutation report markdown not found."
+            table_content="To see files summary, please configure (markdown reporter)[https://stryker-mutator.io/docs/stryker-net/configuration/#reporter-string]."
+          fi
 
-          if [ -n "$table_content" ]; then
-            echo "Summary table exists."
-            echo "<details>
+          echo "<details>
 
           <summary>Files summary</summary>
             
           $table_content
             
           </details>" > "$file_result"
-          else
-            echo "No summary table found."
-            echo "" > "$file_result"
-          fi
-             
+           
+          echo "file=$file_result" >> $GITHUB_OUTPUT
+
           cat "$file_result"
 
-      - name: Create Comment Markdown Result Content
+      - name: Create Report Content
         run: |
-          file="${{ github.workspace }}/stryker-results/reports/mutation-report.md"
-          file_details="${{ github.workspace }}/stryker-comment/pr-comment-content-details.md"
+          file_summary="${{ steps.create-files-summary.outputs.file }}"
+          file_result=${{ github.workspace }}/stryker-report/pr-report-new-content.md
 
           if [ "$MUTATION_SCORE_HINT" == "High" ]; then
             static_badge_color="green"
@@ -213,50 +215,82 @@ jobs:
           ## The final mutation score is $MUTATION_SCORE%
 
           ### *Coverage Thresholds: high:$THRESHOLD_HIGH low:$THRESHOLD_LOW break:$THRESHOLD_BREAK*
-          " > ${{ github.workspace }}/stryker-results/pr-comment-result-content.md
+          " > "$file_result"
 
-          cat ${{ github.workspace }}/stryker-results/pr-comment-result-content.md
+          echo "file=$file_result" >> $GITHUB_OUTPUT
+
+          cat "$file_result"
 
       - uses: jwalton/gh-find-current-pr@v1
         id: finder
 
-      - name: Create Comment
-        id: create-comment-path
-        run: |
-          cat ${{ github.workspace }}/stryker-results/reports/mutation-report.md
-
-      - name: Get Comments JSON
-        run: gh pr view ${{ steps.finder.outputs.pr }} -c --json comments > comments.json
+      - name: Get PR Current JSON
+        run: gh pr view ${{ steps.finder.outputs.pr }} -c --json body,comments > pr-current.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Try Get PR Comment Current
-        id: try-get-pr-comment-current
+      - name: Try Get PR Report Current
+        id: try-get-pr-report-current
         run: |
-          file="${{ github.workspace }}/stryker-results/pr-comment-current.md"
-          comment_body=$(jq -r '.comments[] | select(.body | contains("<!-- ${{ inputs.pr-comment-mark }} -->")) | .body' comments.json)
-          if [ -n "$comment_body" ]; then
+          file="${{ github.workspace }}/stryker-report/pr-report-current.md"
+          pr_body=$(jq -r 'select(.body | contains("<!-- Stryker-Report -->")) | .body' pr-current.json)
+          pr_comment_body=$(jq -r '.comments[] | select(.body | contains("<!-- ${{ inputs.pr-comment-mark }} -->")) | .body' pr-current.json)
+
+          if [ -n "$pr_body" ]; then
+            echo "Stryker PR Body exists."
+            pr_current=$(echo "$pr_body" | sed -n '/<!-- Stryker-Report -->/,/<!-- Stryker-Report-End -->/p' | sed '1d;$d')
+          elif [ -n "$pr_comment_body" ]; then
             echo "Stryker PR Comment exists."
-            echo "result=true" >> $GITHUB_OUTPUT
-            echo "$comment_body" > "$file"
-            cat "$file"
+            pr_current=$pr_comment_body            
           else
-            echo "No Stryker PR comment found."
+            echo "Stryker PR Report not found."
+          fi
+
+          if [ -n "$pr_current" ]; then
+            echo "$pr_current" > "$file"
+            echo "result=true" >> $GITHUB_OUTPUT
+            echo "result_file=$file" >> $GITHUB_OUTPUT
+          else  
             echo "result=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Extract History Section
-        if: steps.try-get-pr-comment-current.outputs.result == 'true'
+          cat "$file"
+
+      - name: Create PR Report History
+        if: steps.try-get-pr-report-current.outputs.result == 'true'
         run: |
-          file="${{ github.workspace }}/stryker-results/pr-comment-current.md"
-          file_result="${{ github.workspace }}/stryker-results/pr-comment-current-history.md"
-          history_table=$(sed -n '/<!--HISTORY-->/, /<!--HISTORY-END-->/ { //!p; }' "$file")
-          echo "$history_table" > "$file_result"
+          file_current="${{ steps.try-get-pr-report-current.outputs.result_file }}"
+          file_result="${{ github.workspace }}/stryker-report/pr-report-new-content-history.md"
+
+          title_line=$(grep -oP 'Mutation Testing Summary.*!\[Static Badge\].*' "$file") 
+          thresholds_line=$(grep -oP 'Coverage Thresholds.*high.*' "$file")
+
+          pr_number=$(grep -oP '(?<=<!--STRYKER-PR-)[^>]+(?=-->)' "$file")
+          badge=$(echo "$title_line" | sed 's/.*!\[Static Badge\]/![Static Badge]/')
+          score=$(grep -oP '(?<=The final mutation score is ).*' "$file")
+          thresholds=$(echo "$tline" | sed 's/.*high/high/' | sed 's/\*//g')
+
+          history_table=$(sed -n '/<!--HISTORY-->/, /<!--HISTORY-END-->/ { //!p; }' "$file_current")
+
+          history_line="| $pr_number | $thresholds | $score | $badge |"
+
+          if [ -n "$history_table" ]; then
+            echo "History section exists."
+          else
+            echo "History section not found."
+            history_table="|PR Run|Thresholds|Score|Badge|"
+          fi
+
+          echo "<!--HISTORY-->
+          $history_table
+          $history_line
+          <!--HISTORY-END-->" > "$file_result"
+
           cat "$file_result"
 
       - name: Extract Issue Comment Number
         run: |
-          url=$(jq -r '.comments[] | select(.body | contains("<!-- Stryker-Mutation-Comment -->")) | .url' comments.json)
+          url=$(jq -r '.comments[] | select(.body | contains("<!-- Stryker-Mutation-Comment -->")) | .url' pr-current.json)
           comment_id=$(echo $url | sed -n 's/.*#issuecomment-\([0-9]*\).*/\1/p')
           echo "Comment ID: $comment_id"
           echo "comment_id=$comment_id" >> $GITHUB_ENV
