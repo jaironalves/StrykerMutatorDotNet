@@ -100,8 +100,10 @@ jobs:
       - name: Create Stryker Json Result
         run: |
           file_result="${{ github.workspace }}/stryker-results/stryker.json"
+          run_date_time=$(date -u -d "$GITHUB_RUN_STARTED" +"%d-%m-%YT%H:%M:%SZ")
           echo "{
             \"mutation_run\": \"${{ github.run_number }}-${{ github.run_attempt }}\",
+            \"mutation_run_date\": $run_date_time,
             \"mutation_score\": $MUTATION_SCORE,
             \"mutation_score_hint\": \"$MUTATION_SCORE_HINT\",
             \"threshold_high\": $THRESHOLD_HIGH,
@@ -309,13 +311,13 @@ jobs:
           echo "$(cat $file_content)
 
           $history
-          
+
           <!-- Stryker-Mutation-Comment -->" > "$file"
 
           echo "file=$file" >> $GITHUB_OUTPUT
 
           cat "$file"
-        
+
       - name: Extract Issue Comment Number
         run: |
           url=$(jq -r '.comments[] | select(.body | contains("<!-- Stryker-Mutation-Comment -->")) | .url' pr-current.json)
@@ -333,6 +335,4 @@ jobs:
       #       -f body="$body"
       #   env:
       #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #     comment_id: ${{ env.comment_id }}          
-
-                
+      #     comment_id: ${{ env.comment_id }}
