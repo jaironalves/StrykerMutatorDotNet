@@ -210,7 +210,7 @@ jobs:
 
           echo "# Mutation Testing Summary $static_badge
             
-          $(cat $file_details)
+          $(cat $file_summary)
 
           ## The final mutation score is $MUTATION_SCORE%
 
@@ -259,15 +259,16 @@ jobs:
       - name: Create PR Report History
         if: steps.try-get-pr-report-current.outputs.result == 'true'
         run: |
-          file_current="${{ steps.try-get-pr-report-current.outputs.result_file }}"
-          file_result="${{ github.workspace }}/stryker-report/pr-report-new-content-history.md"
+          file="${{ github.workspace }}/stryker-report/pr-report-new-content-history.md"
 
-          title_line=$(grep -oP 'Mutation Testing Summary.*!\[Static Badge\].*' "$file") 
-          thresholds_line=$(grep -oP 'Coverage Thresholds.*high.*' "$file")
+          file_current="${{ steps.try-get-pr-report-current.outputs.result_file }}"          
 
-          pr_number=$(grep -oP '(?<=<!--STRYKER-PR-)[^>]+(?=-->)' "$file")
+          title_line=$(grep -oP 'Mutation Testing Summary.*!\[Static Badge\].*' "$file_current") 
+          thresholds_line=$(grep -oP 'Coverage Thresholds.*high.*' "$file_current")
+
+          pr_number=$(grep -oP '(?<=<!--STRYKER-PR-)[^>]+(?=-->)' "$file_current")
           badge=$(echo "$title_line" | sed 's/.*!\[Static Badge\]/![Static Badge]/')
-          score=$(grep -oP '(?<=The final mutation score is ).*' "$file")
+          score=$(grep -oP '(?<=The final mutation score is ).*' "$file_current")
           thresholds=$(echo "$tline" | sed 's/.*high/high/' | sed 's/\*//g')
 
           history_table=$(sed -n '/<!--HISTORY-->/, /<!--HISTORY-END-->/ { //!p; }' "$file_current")
