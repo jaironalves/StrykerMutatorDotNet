@@ -230,7 +230,7 @@ jobs:
             static_badge_color="green"         
           fi
 
-          if [ "$MUTATION_SCORE_HINT" == 'Medium' ]; then
+          if [ "$MUTATION_SCORE_HINT" = "Medium" ]; then
             static_badge_color="yellow"         
           fi
 
@@ -239,6 +239,7 @@ jobs:
           fi
 
           echo "$MUTATION_SCORE_HINT"
+          echo "Medium"
           echo "$static_badge_color"
 
           static_badge="![Static Badge](https://img.shields.io/badge/$MUTATION_SCORE%25-Mutation%20Tests-$static_badge_color)"
