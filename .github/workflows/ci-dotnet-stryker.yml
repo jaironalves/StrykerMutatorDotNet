@@ -326,7 +326,7 @@ jobs:
             -X PATCH \
             -H "Accept: application/vnd.github.v3+json" \
             "/repos/${{github.repository}}/issues/comments/$comment_id" \
-            -f body=$body
+            -f body="$body"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           comment_id: ${{ env.comment_id }}          
