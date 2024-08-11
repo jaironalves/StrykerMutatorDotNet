@@ -267,8 +267,8 @@ jobs:
           thresholds_line=$(grep -oP 'Coverage Thresholds.*high.*' "$file_current")
 
           pr_number=$(grep -oP '(?<=<!--STRYKER-PR-)[^>]+(?=-->)' "$file_current")
-          badge=$(echo -n "$title_line" | sed 's/.*!\[Static Badge\]/![Static Badge]/' | tr -d '\n')
-          score=$(grep -oP '(?<=The final mutation score is ).*' "$file_current")
+          badge=$(echo -n "$title_line" | sed 's/.*!\[Static Badge\]/![Static Badge]/')
+          score=$(grep -oP 'mutation score is \K\d+,\d+' "$file_current")
           thresholds=$(grep -oP 'Coverage Thresholds.*high.*' "$file_current" | sed 's/.*high/high/' | sed 's/\*//g')
 
           history_table=$(sed -n '/<!--HISTORY-->/, /<!--HISTORY-END-->/ { //!p; }' "$file_current")
@@ -279,7 +279,7 @@ jobs:
           echo "Thresholds: $thresholds"          
 
           
-          history_line="|$thresholds|$pr_number|$score|$badge|" 
+          history_line="|$pr_number|$thresholds|$score|$badge|" 
           
 
           cleaned_history_line=$(echo "$history_line" | sed ':a;N;$!ba;s/\n//g')
