@@ -132,9 +132,9 @@ jobs:
       - name: Capture Results
         run: |
           file="${{ github.workspace }}/stryker-results/stryker.json"
-          mutation_run=$(jq '.mutation_run' "$file")
+          mutation_run=$(jq -r '.mutation_run' "$file")
           mutation_score=$(jq '.mutation_score' "$file")
-          mutation_score_hint=$(jq '.mutation_score_hint' "$file")
+          mutation_score_hint=$(jq -r '.mutation_score_hint' "$file")
           threshold_high=$(jq '.threshold_high' "$file")
           threshold_low=$(jq '.threshold_low' "$file")
           threshold_break=$(jq '.threshold_break' "$file")
@@ -225,17 +225,13 @@ jobs:
         run: |
           file_summary="${{ steps.create-files-summary.outputs.file }}"
           file_result=${{ github.workspace }}/stryker-report/pr-report-new-content.md
-          
-          if [ "$MUTATION_SCORE_HINT" = "High" ]; then
-            static_badge_color="green"         
-          fi
-
-          if [ "$MUTATION_SCORE_HINT" = "Medium" ]; then
-            static_badge_color="yellow"         
-          fi
-
-          if [ "$MUTATION_SCORE_HINT" = "Low" ]; then
-            static_badge_color="red"         
+                    
+          if [ "$MUTATION_SCORE_HINT" == "High" ]; then
+            static_badge_color="green"
+          elif [ "$MUTATION_SCORE_HINT" == "Medium" ]; then
+            static_badge_color="yellow"
+          else
+            static_badge_color="red"
           fi
 
           echo "$MUTATION_SCORE_HINT"
