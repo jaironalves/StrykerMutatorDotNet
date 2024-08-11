@@ -226,9 +226,11 @@ jobs:
           file_summary="${{ steps.create-files-summary.outputs.file }}"
           file_result=${{ github.workspace }}/stryker-report/pr-report-new-content.md
 
-          if [ "$MUTATION_SCORE_HINT" = "High" ]; then
+          echo "$MUTATION_SCORE_HINT"
+
+          if [ "$MUTATION_SCORE_HINT" == "High" ]; then
             static_badge_color="green"
-          elif [ "$MUTATION_SCORE_HINT" = "Medium" ]; then
+          elif [ "$MUTATION_SCORE_HINT" == "Medium" ]; then
             static_badge_color="yellow"
           else
             static_badge_color="red"
@@ -319,16 +321,16 @@ jobs:
           echo "Comment ID: $comment_id"
           echo "comment_id=$comment_id" >> $GITHUB_ENV
 
-      - name: Update Comment
-        run: |
-          body=$(cat "${{ steps.create-report.outputs.file }}")
-          gh api \
-            -X PATCH \
-            -H "Accept: application/vnd.github.v3+json" \
-            "/repos/${{github.repository}}/issues/comments/$comment_id" \
-            -f body="$body"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          comment_id: ${{ env.comment_id }}          
+      # - name: Update Comment
+      #   run: |
+      #     body=$(cat "${{ steps.create-report.outputs.file }}")
+      #     gh api \
+      #       -X PATCH \
+      #       -H "Accept: application/vnd.github.v3+json" \
+      #       "/repos/${{github.repository}}/issues/comments/$comment_id" \
+      #       -f body="$body"
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     comment_id: ${{ env.comment_id }}          
 
                 
