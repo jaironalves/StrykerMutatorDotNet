@@ -230,7 +230,7 @@ jobs:
             static_badge_color="green"         
           fi
 
-          if [ $MUTATION_SCORE_HINT = Medium ]; then
+          if [ "$MUTATION_SCORE_HINT" == 'Medium' ]; then
             static_badge_color="yellow"         
           fi
 
