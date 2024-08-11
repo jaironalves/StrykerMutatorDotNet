@@ -241,7 +241,7 @@ jobs:
             pr_current=$(echo "$pr_body" | sed -n '/<!-- Stryker-Report -->/,/<!-- Stryker-Report-End -->/p' | sed '1d;$d')
           elif [ -n "$pr_comment_body" ]; then
             echo "Stryker PR Comment exists."
-            pr_current=$pr_comment_body            
+            pr_current=$(echo "$pr_comment_body" | tr -d '\r')
           else
             echo "Stryker PR Report not found."
           fi
@@ -282,7 +282,7 @@ jobs:
           history_line="|$pr_number|$thresholds|$score|$badge|" 
           
 
-          history_line=$(echo "$history_line" | tr -d '\n' | tr -d '\r')
+          #history_line=$(echo "$history_line" | tr -d '\n' | tr -d '\r')
 
           echo $history_line
           #echo $cleaned_history_line
