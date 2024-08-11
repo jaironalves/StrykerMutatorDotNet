@@ -285,9 +285,9 @@ jobs:
           echo "<!--HISTORY-->
           $history_table
           $history_line
-          <!--HISTORY-END-->" > "$file_result"
+          <!--HISTORY-END-->" > "$file"
 
-          cat "$file_result"
+          cat "$file"
 
       - name: Extract Issue Comment Number
         run: |
