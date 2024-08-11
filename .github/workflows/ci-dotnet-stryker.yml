@@ -278,6 +278,8 @@ jobs:
           echo "Score: $score"
           echo "Thresholds: $thresholds"          
 
+          echo "|$pr_number|$thresholds|$score|$badge|" 
+
           history_line="|$pr_number|$thresholds|$score|$badge|"
           
 
