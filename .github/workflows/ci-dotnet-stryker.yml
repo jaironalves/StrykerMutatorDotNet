@@ -278,7 +278,8 @@ jobs:
             history_table="|PR Run|Thresholds|Score|Badge|"
           fi
 
-          echo "## PR Run History
+          echo "
+          ## PR Run History
 
           <!--HISTORY-->
           $history_table
@@ -290,6 +291,7 @@ jobs:
           cat "$file"
 
       - name: Create PR Report
+        id: create-report
         run: |
           file_content="${{ steps.create-report-content.outputs.file }}"
           file_history="${{ steps.create-report-history.outputs.file }}"          
@@ -316,3 +318,17 @@ jobs:
           comment_id=$(echo $url | sed -n 's/.*#issuecomment-\([0-9]*\).*/\1/p')
           echo "Comment ID: $comment_id"
           echo "comment_id=$comment_id" >> $GITHUB_ENV
+
+      - name: Update Comment
+        run: |
+          body=$(cat "${{ steps.create-report.outputs.file }}")
+          gh api \
+            -X PATCH \
+            -H "Accept: application/vnd.github.v3+json" \
+            "/repos/${{github.repository}}/issues/comments/$comment_id" \
+            -f body=$body
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          comment_id: ${{ env.comment_id }}          
+
+                
