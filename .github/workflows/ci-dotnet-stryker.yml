@@ -100,7 +100,7 @@ jobs:
       - name: Create Stryker Json Result
         run: |
           file_result="${{ github.workspace }}/stryker-results/stryker.json"
-          run_date_time=$(date -u -d "$GITHUB_RUN_STARTED_AT" +"%d-%m-%YT%H:%M:%SZ")
+          run_date_time=$(date -u +"%d-%m-%YT%H:%M:%SZ")
           echo "{
             \"mutation_run\": \"${{ github.run_number }}-${{ github.run_attempt }}\",
             \"mutation_run_date\": \"$run_date_time\",
