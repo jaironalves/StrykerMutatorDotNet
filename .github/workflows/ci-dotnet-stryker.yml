@@ -268,7 +268,7 @@ jobs:
 
           pr_number=$(grep -oP '(?<=<!--STRYKER-PR-)[^>]+(?=-->)' "$file_current")
           badge=$(echo -n "$title_line" | sed 's/.*!\[Static Badge\]/![Static Badge]/')
-          score=$(grep -oP 'mutation score is \K\d+,\d+' "$file_current")
+          score=$(sed -n 's/.*mutation score is \(.*\)/\1/p' "$file_current")
           thresholds=$(grep -oP 'Coverage Thresholds.*high.*' "$file_current" | sed 's/.*high/high/' | sed 's/\*//g')
 
           history_table=$(sed -n '/<!--HISTORY-->/, /<!--HISTORY-END-->/ { //!p; }' "$file_current")
