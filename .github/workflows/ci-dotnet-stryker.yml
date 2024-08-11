@@ -89,13 +89,13 @@ jobs:
             echo "MUTATION_SCORE_HINT=Low" >> $GITHUB_ENV
           fi
 
-      - name: Show Mutation Score
-        run: |
-          echo "Mutation Score: $MUTATION_SCORE"
-          echo "Mutation Score Hint: $MUTATION_SCORE_HINT"
-          echo "Threshold High: $THRESHOLD_HIGH"
-          echo "Threshold Low: $THRESHOLD_LOW"
-          echo "Threshold Break: $THRESHOLD_BREAK"
+      # - name: Show Mutation Score
+      #   run: |
+      #     echo "Mutation Score: $MUTATION_SCORE"
+      #     echo "Mutation Score Hint: $MUTATION_SCORE_HINT"
+      #     echo "Threshold High: $THRESHOLD_HIGH"
+      #     echo "Threshold Low: $THRESHOLD_LOW"
+      #     echo "Threshold Break: $THRESHOLD_BREAK"
 
       - name: Create Stryker Json Result
         run: |
@@ -132,12 +132,14 @@ jobs:
       - name: Capture Results
         run: |
           file="${{ github.workspace }}/stryker-results/stryker.json"
+          mutation_run=$(jq '.mutation_run' "$file")
           mutation_score=$(jq '.mutation_score' "$file")
           mutation_score_hint=$(jq '.mutation_score_hint' "$file")
           threshold_high=$(jq '.threshold_high' "$file")
           threshold_low=$(jq '.threshold_low' "$file")
           threshold_break=$(jq '.threshold_break' "$file")
 
+          echo "MUTATION_RUN=$mutation_run" >> $GITHUB_ENV
           echo "MUTATION_SCORE=$mutation_score" >> $GITHUB_ENV
           echo "MUTATION_SCORE_HINT=$mutation_score_hint" >> $GITHUB_ENV
           echo "THRESHOLD_HIGH=$threshold_high" >> $GITHUB_ENV
@@ -156,70 +158,6 @@ jobs:
       - name: Create Report Folder
         run: |
           mkdir -p ${{ github.workspace }}/stryker-report
-
-      - name: Check Mutation Report Markdown
-        id: check-report-md
-        run: |
-          if [ -f ${{ github.workspace }}/stryker-results/reports/mutation-report.md ]; then
-            echo "O arquivo mutation-report.md existe."
-            echo "result=true" >> $GITHUB_OUTPUT            
-          else
-            echo "O arquivo mutation-report.md não existe."
-          fi
-
-      - name: Create Report Files Summary
-        id: create-files-summary
-        run: |
-          file_mutation_report_md="${{ github.workspace }}/stryker-results/reports/mutation-report.md"
-          file_result="${{ github.workspace }}/stryker-report/pr-report-new-files-summary.md"
-
-          if [ -f "$file_mutation_report_md" ]; then
-            echo "Mutation report markdown exists."            
-            table_content=$(sed -n '/# Mutation Testing Summary/,/## The final mutation score is/ {/^|/p}' "$file_mutation_report_md")
-          else
-            echo "Mutation report markdown not found."
-            table_content="To see files summary, please configure (markdown reporter)[https://stryker-mutator.io/docs/stryker-net/configuration/#reporter-string]."
-          fi
-
-          echo "<details>
-
-          <summary>Files summary</summary>
-            
-          $table_content
-            
-          </details>" > "$file_result"
-           
-          echo "file=$file_result" >> $GITHUB_OUTPUT
-
-          cat "$file_result"
-
-      - name: Create Report Content
-        run: |
-          file_summary="${{ steps.create-files-summary.outputs.file }}"
-          file_result=${{ github.workspace }}/stryker-report/pr-report-new-content.md
-
-          if [ "$MUTATION_SCORE_HINT" == "High" ]; then
-            static_badge_color="green"
-          elif [ "$MUTATION_SCORE_HINT" == "Medium" ]; then
-            static_badge_color="yellow"
-          else
-            static_badge_color="red"
-          fi 
-
-          static_badge="![Static Badge](https://img.shields.io/badge/$MUTATION_SCORE%25-Mutation%20Tests-$static_badge_color)"
-
-          echo "# Mutation Testing Summary $static_badge
-            
-          $(cat $file_summary)
-
-          ## The final mutation score is $MUTATION_SCORE%
-
-          ### *Coverage Thresholds: high:$THRESHOLD_HIGH low:$THRESHOLD_LOW break:$THRESHOLD_BREAK*
-          " > "$file_result"
-
-          echo "file=$file_result" >> $GITHUB_OUTPUT
-
-          cat "$file_result"
 
       - uses: jwalton/gh-find-current-pr@v1
         id: finder
@@ -256,7 +194,65 @@ jobs:
 
           cat "$file"
 
+      - name: Create Report Files Summary
+        id: create-files-summary
+        run: |
+          file_mutation_report_md="${{ github.workspace }}/stryker-results/reports/mutation-report.md"
+          file_result="${{ github.workspace }}/stryker-report/pr-report-new-files-summary.md"
+
+          if [ -f "$file_mutation_report_md" ]; then
+            echo "Mutation report markdown exists."            
+            table_content=$(sed -n '/# Mutation Testing Summary/,/## The final mutation score is/ {/^|/p}' "$file_mutation_report_md")
+          else
+            echo "Mutation report markdown not found."
+            table_content="To see files summary, please configure (markdown reporter)[https://stryker-mutator.io/docs/stryker-net/configuration/#reporter-string]."
+          fi
+
+          echo "<details>
+
+          <summary>Files summary</summary>
+            
+          $table_content
+            
+          </details>" > "$file_result"
+           
+          echo "file=$file_result" >> $GITHUB_OUTPUT
+
+          cat "$file_result"
+
+      - name: Create Report Content
+        id: create-report-content
+        run: |
+          file_summary="${{ steps.create-files-summary.outputs.file }}"
+          file_result=${{ github.workspace }}/stryker-report/pr-report-new-content.md
+
+          if [ "$MUTATION_SCORE_HINT" == "High" ]; then
+            static_badge_color="green"
+          elif [ "$MUTATION_SCORE_HINT" == "Medium" ]; then
+            static_badge_color="yellow"
+          else
+            static_badge_color="red"
+          fi 
+
+          static_badge="![Static Badge](https://img.shields.io/badge/$MUTATION_SCORE%25-Mutation%20Tests-$static_badge_color)"
+          formatted_score=$(printf "%.2f" "$MUTATION_SCORE" | sed 's/\./,/')
+
+          echo "<!--STRYKER-PR-$MUTATION_RUN-->
+          # Mutation Testing Summary $static_badge
+            
+          $(cat $file_summary)
+
+          ## The final mutation score is $formatted_score%
+
+          ### *Coverage Thresholds: high:$THRESHOLD_HIGH low:$THRESHOLD_LOW break:$THRESHOLD_BREAK*
+          " > "$file_result"
+
+          echo "file=$file_result" >> $GITHUB_OUTPUT
+
+          cat "$file_result"
+
       - name: Create PR Report History
+        id: create-report-history
         if: steps.try-get-pr-report-current.outputs.result == 'true'
         run: |
           file="${{ github.workspace }}/stryker-report/pr-report-new-content-history.md"
@@ -266,26 +262,14 @@ jobs:
           title_line=$(grep -oP 'Mutation Testing Summary.*!\[Static Badge\].*' "$file_current") 
           thresholds_line=$(grep -oP 'Coverage Thresholds.*high.*' "$file_current")
 
-          pr_number=$(grep -oP '(?<=<!--STRYKER-PR-)[^>]+(?=-->)' "$file_current")
-          badge=$(echo -n "$title_line" | sed 's/.*!\[Static Badge\]/![Static Badge]/')
+          pr_number=$(sed -n 's/.*<!--STRYKER-PR-\([^>]*\)-->.*/\1/p' "$file_current")
+          badge=$(echo "$title_line" | sed 's/.*!\[Static Badge\]/![Static Badge]/')
           score=$(sed -n 's/.*mutation score is \(.*\)$/\1/p' "$file_current")
-          thresholds=$(grep -oP 'Coverage Thresholds.*high.*' "$file_current" | sed 's/.*high/high/' | sed 's/\*//g')
+          thresholds=$(sed -n '/Coverage Thresholds.*high/s/.*high/high/; s/\*//gp' "$file_current")
 
           history_table=$(sed -n '/<!--HISTORY-->/, /<!--HISTORY-END-->/ { //!p; }' "$file_current")
 
-          echo "PR Number: $pr_number"
-          echo "Badge: $badge" 
-          echo "Score: $score"
-          echo "Thresholds: $thresholds"          
-
-          
           history_line="|$pr_number|$thresholds|$score|$badge|" 
-          
-
-          #history_line=$(echo "$history_line" | tr -d '\n' | tr -d '\r')
-
-          echo $history_line
-          #echo $cleaned_history_line
 
           if [ -n "$history_table" ]; then
             echo "History section exists."
@@ -294,13 +278,38 @@ jobs:
             history_table="|PR Run|Thresholds|Score|Badge|"
           fi
 
-          echo "<!--HISTORY-->
+          echo "## PR Run History
+
+          <!--HISTORY-->
           $history_table
           $history_line
           <!--HISTORY-END-->" > "$file"
 
+          echo "file=$file" >> $GITHUB_OUTPUT
+
           cat "$file"
 
+      - name: Create PR Report
+        run: |
+          file_content="${{ steps.create-report-content.outputs.file }}"
+          file_history="${{ steps.create-report-history.outputs.file }}"          
+          file="${{ github.workspace }}/stryker-report/pr-report-new.md"
+
+          history=""
+          if [ -f "$file_history" ]; then            
+            history=$(cat "$file_history")
+          fi
+
+          echo "$(cat $file_content)
+
+          $history
+          
+          <!-- Stryker-Mutation-Comment -->" > "$file"
+
+          echo "file=$file" >> $GITHUB_OUTPUT
+
+          cat "$file"
+        
       - name: Extract Issue Comment Number
         run: |
           url=$(jq -r '.comments[] | select(.body | contains("<!-- Stryker-Mutation-Comment -->")) | .url' pr-current.json)
