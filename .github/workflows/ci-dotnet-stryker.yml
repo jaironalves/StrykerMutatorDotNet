@@ -282,7 +282,7 @@ jobs:
           history_line="|$pr_number|$thresholds|$score|$badge|" 
           
 
-          cleaned_history_line=$(echo "$history_line" | sed ':a;N;$!ba;s/\n//g')
+          cleaned_history_line=$(echo "$history_line" | tr -d '\n' | tr -d '\r')
 
           echo $history_line
           echo $cleaned_history_line
