@@ -368,18 +368,16 @@ jobs:
           PR_NUMBER: ${{ steps.pr-report-params.outputs.pr_number }}          
           REPORT_CONTENT: ${{ steps.create-report.outputs.file }}        
         run: |
-          pr_body=$(jq -r '.body' pr-current.json)
-          echo "$pr_body"
+          pr_body=$(jq -r '.body' pr-current.json | tr -d '\r')
 
-          report_content=$(cat "${{ steps.create-report.outputs.file }}")
-          escaped_report_content=$(printf '%s\n' "$report_content" | sed -e 's/[\/&]/\\&/g')
+          report_content=$(cat "${{ steps.create-report.outputs.file }}")          
 
           start_marker="<!--STRYKER-REPORT-->"
           end_marker="<!--STRYKER-REPORT-END-->"
           
           if [[ "$pr_body" == *"$start_marker"* && "$pr_body" == *"$end_marker"* ]]; then
             echo "Updating existing report content..."
-            updated_body=$(echo "$pr_body" | sed -e "/$start_marker/,/$end_marker/c\\$escaped_report_content")
+            updated_body=$(echo "$pr_body" | sed -e "/$start_marker/,/$end_marker/c\\$report_content")
           else
             echo "Adding new report content..."
             updated_body="$pr_body\n\n$report_content"
