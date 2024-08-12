@@ -209,7 +209,7 @@ jobs:
 
           echo "current_url=$pr_report_url" >> $GITHUB_OUTPUT
 
-          cat "$file"
+          cat "$file_current"
 
       - name: Create Report Files Summary
         id: create-files-summary
