@@ -6,7 +6,6 @@ on:
       pr-report-destination:
         type: string
         description: "Destination to post PR report"
-        required: true
         default: "pr-body" 
       pr-comment-mark:
         type: string
