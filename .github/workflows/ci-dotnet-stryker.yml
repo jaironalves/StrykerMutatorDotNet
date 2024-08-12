@@ -3,6 +3,11 @@ name: CI DotNet Stryker
 on:
   workflow_call:
     inputs:
+      pr-report-destination:
+        type: string
+        description: "Destination to post PR report"
+        required: true
+        default: "pr-body" 
       pr-comment-mark:
         type: string
         description: "String to mark the PR comment"
@@ -169,34 +174,41 @@ jobs:
         id: finder
 
       - name: Get PR Current JSON
-        run: gh pr view ${{ steps.finder.outputs.pr }} -c --json body,comments > pr-current.json
+        run: gh pr view ${{ steps.finder.outputs.pr }} -c --json body,comments,url > pr-current.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Try Get PR Report Current
-        id: try-get-pr-report-current
+      - name: Init PR Report Params
+        id: pr-report-params
         run: |
-          file="${{ github.workspace }}/stryker-report/pr-report-current.md"
-          pr_body=$(jq -r 'select(.body | contains("<!--STRYKER-REPORT-->")) | .body' pr-current.json)
-          pr_comment_body=$(jq -r '.comments[] | select(.body | contains("<!--STRYKER-REPORT-->")) | .body' pr-current.json)
+          file_current="${{ github.workspace }}/stryker-report/pr-report-current.md"
 
-          if [ -n "$pr_body" ]; then
-            echo "Stryker PR Body exists."
-            pr_current=$(echo "$pr_body" | tr -d '\r' | sed -n '/<!--STRYKER-REPORT-->/,/<!--STRYKER-REPORT-END-->/p' | sed '1d;$d')
-          elif [ -n "$pr_comment_body" ]; then
-            echo "Stryker PR Comment exists."
-            pr_current=$(echo "$pr_comment_body" | tr -d '\r')
+          if [ ${{ inputs.pr-report-destination }} == "pr-body" ]; then
+            pr_body_with_report=$(jq -r 'select(.body | contains("<!--STRYKER-REPORT-->")) | .body' pr-current.json)
+            pr_report=$(echo "$pr_body_with_report" | tr -d '\r' | sed -n '/<!--STRYKER-REPORT-->/,/<!--STRYKER-REPORT-END-->/p' | sed '1d;$d')            
+          else
+            pr_comment_with_report=$(jq -r '.comments[] | select(.body | contains("<!--STRYKER-REPORT-->")) | .body' pr-current.json)
+            pr_report=$(echo "$pr_comment_with_report" | tr -d '\r')
+
+            pr_report_url=$(jq -r '.comments[] | select(.body | contains("<!--STRYKER-REPORT-->")) | .url' pr-current.json)
+            pr_report_comment_id=$(echo $pr_report_url | sed -n 's/.*#issuecomment-\([0-9]*\).*/\1/p')
+          fi
+
+          echo "destination=${{ inputs.pr-report-destination }}" >> $GITHUB_OUTPUT
+          echo "pr_number=${{ steps.finder.outputs.pr }}" >> $GITHUB_OUTPUT
+          echo "pr_report_comment_id=$pr_report_comment_id" >> $GITHUB_OUTPUT
+
+          if [ -n "$pr_report" ]; then
+            echo "Stryker PR Report exists."
+            echo "$pr_report" > "$file_current"
+            echo "has_current=true" >> $GITHUB_OUTPUT            
+            echo "current_file=$file_current" >> $GITHUB_OUTPUT
           else
             echo "Stryker PR Report not found."
+            echo "has_current=false" >> $GITHUB_OUTPUT
           fi
 
-          if [ -n "$pr_current" ]; then
-            echo "$pr_current" > "$file"
-            echo "result=true" >> $GITHUB_OUTPUT
-            echo "result_file=$file" >> $GITHUB_OUTPUT
-          else  
-            echo "result=false" >> $GITHUB_OUTPUT
-          fi
+          echo "current_url=$pr_report_url" >> $GITHUB_OUTPUT
 
           cat "$file"
 
@@ -259,11 +271,11 @@ jobs:
 
       - name: Create PR Report History
         id: create-report-history
-        if: steps.try-get-pr-report-current.outputs.result == 'true'
+        if: steps.pr-report-params.outputs.has_current == 'true'
         run: |
           file="${{ github.workspace }}/stryker-report/pr-report-new-content-history.md"
 
-          file_current="${{ steps.try-get-pr-report-current.outputs.result_file }}"          
+          file_current="${{ steps.pr-report-params.outputs.current_file }}"          
 
           title_line=$(sed -n '/Mutation Testing Summary.*!\[Static Badge\].*/p' "$file_current")
 
@@ -287,10 +299,16 @@ jobs:
           echo "
           ## PR Run History
 
+          <details>
+
+          <summary>History table</summary>
+
           <!--HISTORY-->
           $history_table
           $history_line
-          <!--HISTORY-END-->" > "$file"
+          <!--HISTORY-END-->
+          
+          </details>" > "$file"
 
           echo "file=$file" >> $GITHUB_OUTPUT
 
@@ -308,31 +326,66 @@ jobs:
             history=$(cat "$file_history")
           fi
 
-          echo "$(cat $file_content)
+          echo "<!--STRYKER-REPORT-->
+          $(cat $file_content)
 
           $history
-
-          <!-- Stryker-Mutation-Comment -->" > "$file"
+          
+          <!--STRYKER-REPORT-END-->" > "$file"
 
           echo "file=$file" >> $GITHUB_OUTPUT
 
           cat "$file"
-
-      - name: Extract Issue Comment Number
-        run: |
-          url=$(jq -r '.comments[] | select(.body | contains("<!-- Stryker-Mutation-Comment -->")) | .url' pr-current.json)
-          comment_id=$(echo $url | sed -n 's/.*#issuecomment-\([0-9]*\).*/\1/p')
-          echo "Comment ID: $comment_id"
-          echo "comment_id=$comment_id" >> $GITHUB_ENV
-
-      # - name: Update Comment
-      #   run: |
-      #     body=$(cat "${{ steps.create-report.outputs.file }}")
-      #     gh api \
-      #       -X PATCH \
-      #       -H "Accept: application/vnd.github.v3+json" \
-      #       "/repos/${{github.repository}}/issues/comments/$comment_id" \
-      #       -f body="$body"
+     
+      # - name: Create or Update Report Comment
+      #   if: steps.pr-report-params.outputs.destination != 'pr-body'
       #   env:
       #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #     comment_id: ${{ env.comment_id }}
+      #     PR_REPORT_COMMENT_ID: ${{ steps.pr-report-params.outputs.pr_report_comment_id }}
+      #     PR_NUMBER: ${{ steps.pr-report-params.outputs.pr_number }}
+      #     REPOSITORY: ${{ github.repository }}
+      #     REPORT_CONTENT: ${{ steps.create-report.outputs.file }}
+      #   run: |
+      #     body=$(cat "$REPORT_CONTENT")
+      #     if [ -z "$PR_REPORT_COMMENT_ID" ]; then
+      #       echo "Creating a new report comment..."
+      #       gh api \
+      #         -X POST \
+      #         -H "Accept: application/vnd.github.v3+json" \
+      #         "/repos/$REPOSITORY/issues/$PR_NUMBER/comments" \
+      #         -f body="$body"
+      #     else
+      #       echo "Updating the existing report comment..."
+      #       gh api \
+      #         -X PATCH \
+      #         -H "Accept: application/vnd.github.v3+json" \
+      #         "/repos/$REPOSITORY/issues/comments/$PR_REPORT_COMMENT_ID" \
+      #         -f body="$body"
+      #     fi
+          
+      - name: Update Report Body
+        if: steps.pr-report-params.outputs.destination == 'pr-body'
+        env:
+          PR_NUMBER: ${{ steps.pr-report-params.outputs.pr_number }}          
+          REPORT_CONTENT: ${{ steps.create-report.outputs.file }}        
+        run: |
+          pr_body=$(jq -r '.body' pr-current.json)
+          report_content=$(cat "${{ steps.create-report.outputs.file }}")
+
+          start_marker="<!--STRYKER-REPORT-->"
+          end_marker="<!--STRYKER-REPORT-END-->"
+          
+          if [[ "$pr_body" == *"$start_marker"* && "$pr_body" == *"$end_marker"* ]]; then
+            echo "Updating existing report content..."
+            updated_body=$(echo "$pr_body" | sed -e "/$start_marker/,/$end_marker/{ /$start_marker/{p; r /dev/stdin
+              }; /$end_marker/p; d }" <<< "$report_content")
+            updated_body=$(echo "$updated_body" | sed -e "/$start_marker/,/$end_marker/d")
+            updated_body="$updated_body\n$report_content"
+          else
+            echo "Adding new report content..."
+            updated_body="$pr_body\n\n$report_content"
+          fi
+          
+          echo "$updated_body"
+
+          #gh pr edit $PR_NUMBER --body "$body"
