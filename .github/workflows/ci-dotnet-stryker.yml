@@ -100,10 +100,10 @@ jobs:
       - name: Create Stryker Json Result
         run: |
           file_result="${{ github.workspace }}/stryker-results/stryker.json"
-          run_date_time=$(date -u +"%d-%m-%YT%H:%M:%SZ")
+          run_date=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           echo "{
             \"mutation_run\": \"${{ github.run_number }}-${{ github.run_attempt }}\",
-            \"mutation_run_date\": \"$run_date_time\",
+            \"mutation_run_date\": \"$run_date\",
             \"mutation_score\": $MUTATION_SCORE,
             \"mutation_score_hint\": \"$MUTATION_SCORE_HINT\",
             \"threshold_high\": $THRESHOLD_HIGH,
@@ -135,6 +135,7 @@ jobs:
         run: |
           file="${{ github.workspace }}/stryker-results/stryker.json"
           mutation_run=$(jq -r '.mutation_run' "$file")
+          mutation_run_date=$(jq -r '.mutation_run_date' "$file")
           mutation_score=$(jq '.mutation_score' "$file")
           mutation_score_hint=$(jq -r '.mutation_score_hint' "$file")
           threshold_high=$(jq '.threshold_high' "$file")
@@ -142,6 +143,7 @@ jobs:
           threshold_break=$(jq '.threshold_break' "$file")
 
           echo "MUTATION_RUN=$mutation_run" >> $GITHUB_ENV
+          echo "MUTATION_RUN_DATE=$mutation_run_date" >> $GITHUB_ENV
           echo "MUTATION_SCORE=$mutation_score" >> $GITHUB_ENV
           echo "MUTATION_SCORE_HINT=$mutation_score_hint" >> $GITHUB_ENV
           echo "THRESHOLD_HIGH=$threshold_high" >> $GITHUB_ENV
@@ -150,6 +152,8 @@ jobs:
 
       - name: Show Mutation Score
         run: |
+          echo "Mutation Run: $MUTATION_RUN" 
+          echo "Mutation Run Date: $MUTATION_RUN_DATE" 
           echo "Mutation Score: $MUTATION_SCORE"
           echo "Mutation Score Hint: $MUTATION_SCORE_HINT"
           echo "Threshold High: $THRESHOLD_HIGH"
@@ -234,16 +238,12 @@ jobs:
             static_badge_color="yellow"
           else
             static_badge_color="red"
-          fi
-
-          echo "$MUTATION_SCORE_HINT"
-          echo "Medium"
-          echo "$static_badge_color"
+          fi          
 
           static_badge="![Static Badge](https://img.shields.io/badge/$MUTATION_SCORE%25-Mutation%20Tests-$static_badge_color)"
           formatted_score=$(printf "%.2f" "$MUTATION_SCORE" | sed 's/\./,/')
 
-          echo "<!--STRYKER-PR-$MUTATION_RUN-->
+          echo "<!--STRYKER-PR-$MUTATION_RUN|$MUTATION_RUN_DATE-->
           # Mutation Testing Summary $static_badge
             
           $(cat $file_summary)
@@ -265,23 +265,23 @@ jobs:
 
           file_current="${{ steps.try-get-pr-report-current.outputs.result_file }}"          
 
-          title_line=$(grep -oP 'Mutation Testing Summary.*!\[Static Badge\].*' "$file_current") 
-          thresholds_line=$(grep -oP 'Coverage Thresholds.*high.*' "$file_current")
+          title_line=$(sed -n '/Mutation Testing Summary.*!\[Static Badge\].*/p' "$file_current")
 
-          pr_number=$(sed -n 's/.*<!--STRYKER-PR-\([^>]*\)-->.*/\1/p' "$file_current")
+          pr_number=$(sed -n 's/^<!--STRYKER-PR-\([^|]*\)|.*/\1/p' "$file_current")
+          date_time=$(sed -n 's/^<!--STRYKER-PR.*|\(.*\)-->.*/\1/p' "$file_current")
           badge=$(echo "$title_line" | sed 's/.*!\[Static Badge\]/![Static Badge]/')
           score=$(sed -n 's/.*mutation score is \(.*\)$/\1/p' "$file_current")
           thresholds=$(sed -n '/Coverage Thresholds.*high/s/.*high/high/; s/\*//gp' "$file_current")
 
           history_table=$(sed -n '/<!--HISTORY-->/, /<!--HISTORY-END-->/ { //!p; }' "$file_current")
 
-          history_line="|$pr_number|$thresholds|$score|$badge|" 
+          history_line="|$date_time|$pr_number|$thresholds|$score|$badge|" 
 
           if [ -n "$history_table" ]; then
             echo "History section exists."
           else
             echo "History section not found."
-            history_table="|PR Run|Thresholds|Score|Badge|"
+            history_table="Date|Run|Thresholds|Score|Badge|"
           fi
 
           echo "
