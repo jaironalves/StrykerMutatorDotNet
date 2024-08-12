@@ -382,9 +382,17 @@ jobs:
           if [[ "$pr_body" == *"$start_marker"* && "$pr_body" == *"$end_marker"* ]]; then
             echo "Updating existing report content..."
 
-            updated_body=$(echo "$pr_body_content" | sed -e "/$start_marker/,/$end_marker/c\\$replace_mark")
+            content_before_marker=$(echo "$pr_body_content" | sed '/<!--STRYKER-REPORT-->/q')
+            content_after_marker=$(echo "$pr_body_content" | sed -n '/<!--STRYKER-REPORT-END-->/,$p' | sed '1d')
+
+
+            updated_body=echo "$content_before_marker
+            $report_content
+            $content_after_marker"
+
+            #updated_body=$(echo "$pr_body_content" | sed -e "/$start_marker/,/$end_marker/c\\$replace_mark")
             #updated_body=$(echo "$updated_body" | awk -v mark="$replace_mark" -v content="$report_content" '{gsub(mark, content); print}')
-            updated_body=$(echo "$updated_body" | sed -e "/$start_marker/a $report_content")
+            #updated_body=$(echo "$updated_body" | sed -e "/$start_marker/a $report_content")
           else
             echo "Adding new report content..."
             updated_body="$pr_body\n\n$report_content"
