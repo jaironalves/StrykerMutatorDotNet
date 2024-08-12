@@ -1,5 +1,5 @@
-﻿<!--STRYKER-PR-173-1|2024-08-11T22:57:44Z-->
-# Mutation Testing Summary ![Static Badge](https://img.shields.io/badge/20%25-Mutation%20Tests-red)
+﻿<!--STRYKER-PR-184-1|2024-08-12T01:28:59Z-->
+# Mutation Testing Summary ![Static Badge](https://img.shields.io/badge/20%25-Mutation%20Tests-yellow)
   
 <details>
 
@@ -26,6 +26,5 @@
 |2024-07-05T20:32:10Z|10|high:80 low:10 break:0|50,00%|![Static Badge](https://img.shields.io/badge/50%25-Mutation%20Tests-yellow)|
 |2024-08-03T17:21:54Z|101-3|high:80 low:10 break:0|20,00%|![Static Badge](https://img.shields.io/badge/20%25-Mutation%20Tests-red)|
 |2024-08-11T22:57:44Z|172-1|high:80 low:10 break:0|20,00%|![Static Badge](https://img.shields.io/badge/20%25-Mutation%20Tests-red)|
+|2024-08-11T22:57:44Z|173-1|high:80 low:10 break:0|20,00%|![Static Badge](https://img.shields.io/badge/20%25-Mutation%20Tests-red)|
 <!--HISTORY-END-->
-
-<!-- Stryker-Mutation-Comment -->

@@ -177,12 +177,12 @@ jobs:
         id: try-get-pr-report-current
         run: |
           file="${{ github.workspace }}/stryker-report/pr-report-current.md"
-          pr_body=$(jq -r 'select(.body | contains("<!-- Stryker-Report -->")) | .body' pr-current.json)
-          pr_comment_body=$(jq -r '.comments[] | select(.body | contains("<!-- ${{ inputs.pr-comment-mark }} -->")) | .body' pr-current.json)
+          pr_body=$(jq -r 'select(.body | contains("<!--STRYKER-REPORT-->")) | .body' pr-current.json)
+          pr_comment_body=$(jq -r '.comments[] | select(.body | contains("<!--STRYKER-REPORT-->")) | .body' pr-current.json)
 
           if [ -n "$pr_body" ]; then
             echo "Stryker PR Body exists."
-            pr_current=$(echo "$pr_body" | sed -n '/<!-- Stryker-Report -->/,/<!-- Stryker-Report-End -->/p' | sed '1d;$d')
+            pr_current=$(echo "$pr_body" | tr -d '\r' | sed -n '/<!--STRYKER-REPORT-->/,/<!--STRYKER-REPORT-END-->/p' | sed '1d;$d')
           elif [ -n "$pr_comment_body" ]; then
             echo "Stryker PR Comment exists."
             pr_current=$(echo "$pr_comment_body" | tr -d '\r')
