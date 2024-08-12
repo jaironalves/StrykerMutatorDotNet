@@ -386,7 +386,7 @@ jobs:
             content_after_marker=$(echo "$pr_body_content" | sed -n '/<!--STRYKER-REPORT-END-->/,$p' | sed '1d')
 
 
-            updated_body=echo "$content_before_marker
+            updated_body="$content_before_marker
             $report_content
             $content_after_marker"
 
