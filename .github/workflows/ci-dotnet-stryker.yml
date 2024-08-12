@@ -383,12 +383,18 @@ jobs:
             echo "Updating existing report content..."
 
             content_before_marker=$(echo "$pr_body_content" | sed '/<!--STRYKER-REPORT-->/q')
+
+            echo "Before:"
+            echo "$content_before_marker"
+            echo ""
+            echo ""
+
             content_after_marker=$(echo "$pr_body_content" | sed -n '/<!--STRYKER-REPORT-END-->/,$p' | sed '1d')
 
 
             updated_body="$content_before_marker
-            $report_content
-            $content_after_marker"
+          $report_content
+          $content_after_marker"
 
             #updated_body=$(echo "$pr_body_content" | sed -e "/$start_marker/,/$end_marker/c\\$replace_mark")
             #updated_body=$(echo "$updated_body" | awk -v mark="$replace_mark" -v content="$report_content" '{gsub(mark, content); print}')
