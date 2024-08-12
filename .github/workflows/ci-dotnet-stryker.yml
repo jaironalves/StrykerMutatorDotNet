@@ -369,6 +369,8 @@ jobs:
           REPORT_CONTENT: ${{ steps.create-report.outputs.file }}        
         run: |
           pr_body=$(jq -r '.body' pr-current.json)
+          echo "$pr_body"
+
           report_content=$(cat "${{ steps.create-report.outputs.file }}")
           escaped_report_content=$(printf '%s\n' "$report_content" | sed -e 's/[\/&]/\\&/g')
 
