@@ -382,7 +382,8 @@ jobs:
           if [[ "$pr_body" == *"$start_marker"* && "$pr_body" == *"$end_marker"* ]]; then
             echo "Updating existing report content..."
 
-            content_before_marker=$(echo "$pr_body_content" | sed '/<!--STRYKER-REPORT-->/q')
+            #content_before_marker=$(echo "$pr_body_content" | sed '/<!--STRYKER-REPORT-->/q')
+            content_before_marker=$(echo "$pr_body_content" | awk '/<!--STRYKER-REPORT-->/ {exit} {print}')
 
             echo "Before:"
             echo "$content_before_marker"
