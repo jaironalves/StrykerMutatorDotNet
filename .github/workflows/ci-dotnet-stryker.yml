@@ -376,7 +376,7 @@ jobs:
           
           if [[ "$pr_body" == *"$start_marker"* && "$pr_body" == *"$end_marker"* ]]; then
             echo "Updating existing report content..."
-            updated_body=$(echo "$pr_body" | sed "/$start_marker/,/$end_marker/{//!d;}")
+            updated_body=$(echo "$pr_body" | sed -e "/$start_marker/,/$end_marker/c\\$report_content")
           else
             echo "Adding new report content..."
             updated_body="$pr_body\n\n$report_content"
