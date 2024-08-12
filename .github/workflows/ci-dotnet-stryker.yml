@@ -373,14 +373,16 @@ jobs:
           pr_body_content=$(echo "$pr_body" | tr -d '\r')
           echo "$pr_body_content" > "$file_pr_body"
           
-          report_content=$(cat "${{ steps.create-report.outputs.file }}")          
+          report_content=$(cat "${{ steps.create-report.outputs.file }}")
+          report_content="Trocar AUQI"      
 
           start_marker="<!--STRYKER-REPORT-->"
           end_marker="<!--STRYKER-REPORT-END-->"
           
           if [[ "$pr_body" == *"$start_marker"* && "$pr_body" == *"$end_marker"* ]]; then
             echo "Updating existing report content..."
-            updated_body=$(sed -e "/$start_marker/,/$end_marker/c\\$report_content" $file_pr_body)
+
+            updated_body=$(echo "$pr_body_content" | sed -e "/$start_marker/,/$end_marker/c\\$report_content")
           else
             echo "Adding new report content..."
             updated_body="$pr_body\n\n$report_content"
