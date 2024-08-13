@@ -383,7 +383,7 @@ jobs:
             pr_body_new_mark=$(echo "$pr_body" | sed -e "/$start_marker/,/$end_marker/c\\$new_mark")
 
             pr_body_before=$(echo "$pr_body_new_mark" | sed "/$new_mark/, \$d")           
-            pr_body_after=$(echo "$pr_body_new_mark" | sed -n "/$new_mark/,$p" | sed '1d')
+            pr_body_after=$(echo "$pr_body_new_mark" | sed -n "/$new_mark/, \$p" | sed '1d')
 
             echo "Before:"
             echo "$pr_body_before"
@@ -404,7 +404,10 @@ jobs:
             #updated_body=$(echo "$updated_body" | sed -e "/$start_marker/a $report_content")
           else
             echo "Adding new report content..."
-            pr_body_new="$pr_body\n\n$report_content"
+            pr_body_new="$pr_body
+          
+          
+          $report_content"
           fi
           
           echo "$pr_body_new"
