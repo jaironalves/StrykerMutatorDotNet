@@ -369,7 +369,7 @@ jobs:
           REPORT_CONTENT: ${{ steps.create-report.outputs.file }}        
         run: |          
           pr_body_json=$(jq -r '.body' pr-current.json)
-          pr_body=$(echo "$pr_body" | tr -d '\r')          
+          pr_body=$(echo "$pr_body_json" | tr -d '\r')          
           
           report_content=$(cat "${{ steps.create-report.outputs.file }}")          
 
