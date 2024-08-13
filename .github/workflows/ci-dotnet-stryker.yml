@@ -427,7 +427,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
           PR_NUMBER: ${{ steps.pr-report-params.outputs.pr_number }}
         run: |
-          if [ "$MUTATION_SCORE_HINT" == "High" ]; then
+          if [ "$MUTATION_SCORE_HINT" == "Medium" ]; then
             gh pr edit $PR_NUMBER --add-label "mutation-test-high" --remove-label "mutation-test-medium,mutation-test-low"
           elif [ "$MUTATION_SCORE_HINT" == "Medium" ]; then
             gh pr edit $PR_NUMBER --add-label "mutation-test-medium" --remove-label "mutation-test-high,mutation-test-low"
