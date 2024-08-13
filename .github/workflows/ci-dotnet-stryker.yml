@@ -255,13 +255,13 @@ jobs:
           formatted_score=$(printf "%.2f" "$MUTATION_SCORE" | sed 's/\./,/')
 
           echo "<!--STRYKER-PR-$MUTATION_RUN|$MUTATION_RUN_DATE-->
-          # Mutation Testing Summary $static_badge
+          ## Mutation Testing Summary $static_badge
             
           $(cat $file_summary)
 
-          ## The final mutation score is $formatted_score%
+          ### The final mutation score is $formatted_score%
 
-          ### *Coverage Thresholds: high:$THRESHOLD_HIGH low:$THRESHOLD_LOW break:$THRESHOLD_BREAK*
+          #### *Coverage Thresholds: high:$THRESHOLD_HIGH low:$THRESHOLD_LOW break:$THRESHOLD_BREAK*
           " > "$file_result"
 
           echo "file=$file_result" >> $GITHUB_OUTPUT
@@ -281,12 +281,12 @@ jobs:
           score=$(sed -n 's/.*mutation score is \(.*\)$/\1/p' "$file_current")
           thresholds=$(sed -n '/Coverage Thresholds.*high/s/.*high/high/; s/\*//gp' "$file_current")
 
-          gmt_minus_3_date_time=$(TZ='America/Sao_Paulo' date -d "$date_time")
+          gmt_minus_3_date_time=$(TZ='America/Sao_Paulo' date -d "$date_time" +"%d/%m/%Y %H:%M:%S %Z")
           echo "GMT-3 Date Time: $gmt_minus_3_date_time"
 
           echo "HISTORY_RUN_NUMBER=$run_number" >> $GITHUB_ENV
           echo "HISTORY_RUN_DATE=$date_time" >> $GITHUB_ENV
-          echo "HISTORY_BADGE=$mutation_score" >> $GITHUB_ENV
+          echo "HISTORY_BADGE=$badge" >> $GITHUB_ENV
           echo "HISTORY_SCORE=$score" >> $GITHUB_ENV
           echo "HISTORY_THRESHOLDS=$thresholds" >> $GITHUB_ENV
 
@@ -380,6 +380,7 @@ jobs:
       - name: Update Report PR Body
         if: steps.pr-report-params.outputs.destination == 'pr-body'
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ steps.pr-report-params.outputs.pr_number }}          
           REPORT_CONTENT: ${{ steps.create-report.outputs.file }}        
         run: |          
