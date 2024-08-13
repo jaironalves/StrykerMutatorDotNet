@@ -367,44 +367,46 @@ jobs:
         env:
           PR_NUMBER: ${{ steps.pr-report-params.outputs.pr_number }}          
           REPORT_CONTENT: ${{ steps.create-report.outputs.file }}        
-        run: |
-          file_pr_body="${{ github.workspace }}/stryker-report/pr-body.md"
-          pr_body=$(jq -r '.body' pr-current.json)
-          pr_body_content=$(echo "$pr_body" | tr -d '\r')
-          echo "$pr_body_content" > "$file_pr_body"
+        run: |          
+          pr_body_json=$(jq -r '.body' pr-current.json)
+          pr_body=$(echo "$pr_body" | tr -d '\r')          
           
-          report_content=$(cat "${{ steps.create-report.outputs.file }}")
-          replace_mark="#STRYKER-REPORT-NEW#"      
+          report_content=$(cat "${{ steps.create-report.outputs.file }}")          
 
           start_marker="<!--STRYKER-REPORT-->"
           end_marker="<!--STRYKER-REPORT-END-->"
           
           if [[ "$pr_body" == *"$start_marker"* && "$pr_body" == *"$end_marker"* ]]; then
             echo "Updating existing report content..."
+            
+            new_mark="##STRYKER-REPORT-NEW##"
+            pr_body_new_mark=$(echo "$pr_body" | sed -e "/$start_marker/,/$end_marker/c\\$new_mark")
 
-            #content_before_marker=$(echo "$pr_body_content" | sed '/<!--STRYKER-REPORT-->/q')
-            content_before_marker=$(echo "$pr_body_content" | awk '/<!--STRYKER-REPORT-->/ {exit} {print}')
+            pr_body_before=$(echo "$pr_body_new_mark" | sed "/$new_mark/, \$d")           
+            pr_body_after=$(echo "$pr_body_new_mark" | sed -n "/$new_mark/,$p" | sed '1d')
 
             echo "Before:"
-            echo "$content_before_marker"
-            echo ""
-            echo ""
+            echo "$pr_body_before"
+            echo "....."
+            echo "....."
 
-            content_after_marker=$(echo "$pr_body_content" | sed -n '/<!--STRYKER-REPORT-END-->/,$p' | sed '1d')
+            echo "After:"
+            echo "$pr_body_after"
+            echo "....."
+            echo "....."
 
-
-            updated_body="$content_before_marker
+            pr_body_new="$pr_body_before
           $report_content
-          $content_after_marker"
+          $pr_body_after"
 
             #updated_body=$(echo "$pr_body_content" | sed -e "/$start_marker/,/$end_marker/c\\$replace_mark")
             #updated_body=$(echo "$updated_body" | awk -v mark="$replace_mark" -v content="$report_content" '{gsub(mark, content); print}')
             #updated_body=$(echo "$updated_body" | sed -e "/$start_marker/a $report_content")
           else
             echo "Adding new report content..."
-            updated_body="$pr_body\n\n$report_content"
+            pr_body_new="$pr_body\n\n$report_content"
           fi
           
-          echo "$updated_body"
+          echo "$pr_body_new"
 
           #gh pr edit $PR_NUMBER --body "$body"
