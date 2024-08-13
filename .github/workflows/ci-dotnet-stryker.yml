@@ -249,7 +249,7 @@ jobs:
             static_badge_color="yellow"
           else
             static_badge_color="red"
-          fi          
+          fi
 
           static_badge="![Static Badge](https://img.shields.io/badge/$MUTATION_SCORE%25-Mutation%20Tests-$static_badge_color)"
           formatted_score=$(printf "%.2f" "$MUTATION_SCORE" | sed 's/\./,/')
@@ -326,6 +326,7 @@ jobs:
           fi
 
           echo "<!--STRYKER-REPORT-->
+          <!--PLEASE DO NOT REMOVE OR EDIT CONTENT-->
           $(cat $file_content)
 
           $history
@@ -335,7 +336,7 @@ jobs:
           echo "file=$file" >> $GITHUB_OUTPUT
 
           cat "$file"
-     
+      
       # - name: Create or Update Report Comment
       #   if: steps.pr-report-params.outputs.destination != 'pr-body'
       #   env:
@@ -411,4 +412,22 @@ jobs:
           
           echo "$pr_body_new"
 
-          #gh pr edit $PR_NUMBER --body "$body"
+          #gh pr edit $PR_NUMBER --body "$pr_body_new"
+
+      - name: Create or Update Labels
+        run: |
+          gh label create mutation-test-high -f --description "Mutation tests coverage high" --color 0E8A16
+          gh label create mutation-test-medium -f --description "Mutation tests coverage medium" --color FDD835
+          gh label create mutation-test-low -f --description "Mutation tests coverage low" --color B60205
+
+      - name: Update PR Labels
+        env:
+          PR_NUMBER: ${{ steps.pr-report-params.outputs.pr_number }}
+        run: |
+          if [ "$MUTATION_SCORE_HINT" == "High" ]; then
+            gh pr edit $PR_NUMBER --add-label "mutation-test-high" --remove-label "mutation-test-medium,mutation-test-low"
+          elif [ "$MUTATION_SCORE_HINT" == "Medium" ]; then
+            gh pr edit $PR_NUMBER --add-label "mutation-test-medium" --remove-label "mutation-test-high,mutation-test-low"
+          else
+            gh pr edit $PR_NUMBER --add-label "mutation-test-low" --remove-label "mutation-test-high,mutation-test-medium"
+          fi
