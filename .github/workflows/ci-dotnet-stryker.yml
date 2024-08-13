@@ -268,25 +268,38 @@ jobs:
 
           cat "$file_result"
 
-      - name: Create PR Report History
-        id: create-report-history
+      - name: Create PR Report History - Set Variables        
         if: steps.pr-report-params.outputs.has_current == 'true'
         run: |
-          file="${{ github.workspace }}/stryker-report/pr-report-new-content-history.md"
-
           file_current="${{ steps.pr-report-params.outputs.current_file }}"          
-
+  
           title_line=$(sed -n '/Mutation Testing Summary.*!\[Static Badge\].*/p' "$file_current")
-
-          pr_number=$(sed -n 's/^<!--STRYKER-PR-\([^|]*\)|.*/\1/p' "$file_current")
+  
+          run_number=$(sed -n 's/^<!--STRYKER-PR-\([^|]*\)|.*/\1/p' "$file_current")
           date_time=$(sed -n 's/^<!--STRYKER-PR.*|\(.*\)-->.*/\1/p' "$file_current")
           badge=$(echo "$title_line" | sed 's/.*!\[Static Badge\]/![Static Badge]/')
           score=$(sed -n 's/.*mutation score is \(.*\)$/\1/p' "$file_current")
           thresholds=$(sed -n '/Coverage Thresholds.*high/s/.*high/high/; s/\*//gp' "$file_current")
 
+          gmt_minus_3_date_time=$(TZ='America/Sao_Paulo' date -d "$date_time")
+          echo "GMT-3 Date Time: $gmt_minus_3_date_time"
+
+          echo "HISTORY_RUN_NUMBER=$run_number" >> $GITHUB_ENV
+          echo "HISTORY_RUN_DATE=$date_time" >> $GITHUB_ENV
+          echo "HISTORY_BADGE=$mutation_score" >> $GITHUB_ENV
+          echo "HISTORY_SCORE=$score" >> $GITHUB_ENV
+          echo "HISTORY_THRESHOLDS=$thresholds" >> $GITHUB_ENV
+
+      - name: Create PR Report History
+        id: create-report-history
+        if: steps.pr-report-params.outputs.has_current == 'true'
+        run: |
+          file="${{ github.workspace }}/stryker-report/pr-report-new-content-history.md"
+          file_current="${{ steps.pr-report-params.outputs.current_file }}"
+          
           history_table=$(sed -n '/<!--HISTORY-->/, /<!--HISTORY-END-->/ { //!p; }' "$file_current")
 
-          history_line="|$date_time|$pr_number|$thresholds|$score|$badge|" 
+          history_line="|$HISTORY_RUN_DATE|$HISTORY_RUN_NUMBER|$HISTORY_THRESHOLDS|$HISTORY_SCORE|$HISTORY_BADGE|" 
 
           if [ -n "$history_table" ]; then
             echo "History section exists."
@@ -296,7 +309,7 @@ jobs:
           fi
 
           echo "
-          ## PR Run History
+          ## Mutation Pull Request History
 
           <details>
 
@@ -320,17 +333,18 @@ jobs:
           file_history="${{ steps.create-report-history.outputs.file }}"          
           file="${{ github.workspace }}/stryker-report/pr-report-new.md"
 
-          history=""
+          history_content=""
           if [ -f "$file_history" ]; then            
-            history=$(cat "$file_history")
+            history_content="
+          $(cat "$file_history")
+
+          "
           fi
 
           echo "<!--STRYKER-REPORT-->
           <!--PLEASE DO NOT REMOVE OR EDIT CONTENT-->
           $(cat $file_content)
-
-          $history
-          
+          $history          
           <!--STRYKER-REPORT-END-->" > "$file"
 
           echo "file=$file" >> $GITHUB_OUTPUT
@@ -414,7 +428,7 @@ jobs:
 
           #gh pr edit $PR_NUMBER --body "$pr_body_new"
 
-      - name: Create or Update Labels
+      - name: Create or Update Report Labels
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -422,7 +436,7 @@ jobs:
           gh label create mutation-test-medium -f --description "Mutation tests coverage medium" --color FDD835
           gh label create mutation-test-low -f --description "Mutation tests coverage low" --color B60205
 
-      - name: Update PR Labels
+      - name: Update PR Report Labels
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
           PR_NUMBER: ${{ steps.pr-report-params.outputs.pr_number }}
