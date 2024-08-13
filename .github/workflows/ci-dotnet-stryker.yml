@@ -415,6 +415,8 @@ jobs:
           #gh pr edit $PR_NUMBER --body "$pr_body_new"
 
       - name: Create or Update Labels
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh label create mutation-test-high -f --description "Mutation tests coverage high" --color 0E8A16
           gh label create mutation-test-medium -f --description "Mutation tests coverage medium" --color FDD835
@@ -422,6 +424,7 @@ jobs:
 
       - name: Update PR Labels
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
           PR_NUMBER: ${{ steps.pr-report-params.outputs.pr_number }}
         run: |
           if [ "$MUTATION_SCORE_HINT" == "High" ]; then
