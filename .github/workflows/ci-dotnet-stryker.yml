@@ -395,9 +395,9 @@ jobs:
             echo "....."
             echo "....."
 
-            pr_body_new="$pr_body_before
-          $report_content
-          $pr_body_after"
+            #pr_body_new="$pr_body_before          #$report_content          #$pr_body_after"
+
+            pr_body_new=$(echo "$pr_body_new_mark" | sed "/$new_mark/c\\${report_content@Q}")
 
             #updated_body=$(echo "$pr_body_content" | sed -e "/$start_marker/,/$end_marker/c\\$replace_mark")
             #updated_body=$(echo "$updated_body" | awk -v mark="$replace_mark" -v content="$report_content" '{gsub(mark, content); print}')
