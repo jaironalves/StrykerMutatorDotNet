@@ -256,32 +256,20 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: stryker-results
-          path: ${{ github.workspace }}/stryker-results/
+          path: ${{ github.workspace }}/stryker-results/      
+
+      - name: Capture Mutation Score Hint
+        run: |
+          file="${{ github.workspace }}/stryker-results/stryker.json"         
+          mutation_score_hint=$(jq -r '.mutation_score_hint' "$file")
+          
+          echo "MUTATION_SCORE_HINT=$mutation_score_hint" >> $GITHUB_ENV          
 
       - name: Download Stryker Reports
         uses: actions/download-artifact@v4
         with:
           name: stryker-reports
           path: ${{ github.workspace }}/stryker-reports/
-
-      - name: Capture Results
-        run: |
-          file="${{ github.workspace }}/stryker-results/stryker.json"
-          mutation_run=$(jq -r '.mutation_run' "$file")
-          mutation_run_date=$(jq -r '.mutation_run_date' "$file")
-          mutation_score=$(jq '.mutation_score' "$file")
-          mutation_score_hint=$(jq -r '.mutation_score_hint' "$file")
-          threshold_high=$(jq '.threshold_high' "$file")
-          threshold_low=$(jq '.threshold_low' "$file")
-          threshold_break=$(jq '.threshold_break' "$file")
-
-          echo "MUTATION_RUN=$mutation_run" >> $GITHUB_ENV
-          echo "MUTATION_RUN_DATE=$mutation_run_date" >> $GITHUB_ENV
-          echo "MUTATION_SCORE=$mutation_score" >> $GITHUB_ENV
-          echo "MUTATION_SCORE_HINT=$mutation_score_hint" >> $GITHUB_ENV
-          echo "THRESHOLD_HIGH=$threshold_high" >> $GITHUB_ENV
-          echo "THRESHOLD_LOW=$threshold_low" >> $GITHUB_ENV
-          echo "THRESHOLD_BREAK=$threshold_break" >> $GITHUB_ENV    
 
       - name: Create PR Report Folder
         run: |
@@ -360,7 +348,7 @@ jobs:
         id: create-report-history
         if: steps.pr-report-params.outputs.has_current == 'true'
         run: |
-          file="${{ github.workspace }}/stryker-report/pr-report-new-content-history.md"
+          file="${{ github.workspace }}/stryker-report-pr/new-content-history.md"
           file_current="${{ steps.pr-report-params.outputs.current_file }}"
           
           history_table=$(sed -n '/<!--HISTORY-->/, /<!--HISTORY-END-->/ { //!p; }' "$file_current")
@@ -395,7 +383,7 @@ jobs:
       - name: Create PR Report
         id: create-report
         run: |
-          file_content="${{ github.workspace }}/stryker-reports/report.md"
+          file_report="${{ github.workspace }}/stryker-reports/report.md"
           file_history="${{ steps.create-report-history.outputs.file }}"          
           file="${{ github.workspace }}/stryker-report-pr/new.md"
 
@@ -409,7 +397,7 @@ jobs:
 
           echo "<!--STRYKER-REPORT-->
           <!--PLEASE DO NOT REMOVE OR EDIT CONTENT-->
-          $(cat $file_content)
+          $(cat $file_report)
           $history          
           <!--STRYKER-REPORT-END-->" > "$file"
 
