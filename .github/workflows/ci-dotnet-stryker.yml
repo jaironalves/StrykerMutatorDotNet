@@ -242,7 +242,9 @@ jobs:
 
   stryker-report-pull-request:
     if: ${{ github.event_name == 'pull_request' }}
-    needs: stryker-report
+    needs: 
+      - stryker-run
+      - stryker-report
     runs-on: ubuntu-latest
     env:
       pr-number: ${{ inputs.pr-number }}
@@ -255,6 +257,12 @@ jobs:
         with:
           name: stryker-results
           path: ${{ github.workspace }}/stryker-results/
+
+      - name: Download Stryker Reports
+        uses: actions/download-artifact@v4
+        with:
+          name: stryker-reports
+          path: ${{ github.workspace }}/stryker-reports/
 
       - name: Capture Results
         run: |
@@ -273,34 +281,21 @@ jobs:
           echo "MUTATION_SCORE_HINT=$mutation_score_hint" >> $GITHUB_ENV
           echo "THRESHOLD_HIGH=$threshold_high" >> $GITHUB_ENV
           echo "THRESHOLD_LOW=$threshold_low" >> $GITHUB_ENV
-          echo "THRESHOLD_BREAK=$threshold_break" >> $GITHUB_ENV
+          echo "THRESHOLD_BREAK=$threshold_break" >> $GITHUB_ENV    
 
-      - name: Show Mutation Score
+      - name: Create PR Report Folder
         run: |
-          echo "Mutation Run: $MUTATION_RUN" 
-          echo "Mutation Run Date: $MUTATION_RUN_DATE" 
-          echo "Mutation Score: $MUTATION_SCORE"
-          echo "Mutation Score Hint: $MUTATION_SCORE_HINT"
-          echo "Threshold High: $THRESHOLD_HIGH"
-          echo "Threshold Low: $THRESHOLD_LOW"
-          echo "Threshold Break: $THRESHOLD_BREAK"
-          echo "Mutation Score Hint: $MUTATION_SCORE_HINT"
-
-      - name: Create Report Folder
-        run: |
-          mkdir -p ${{ github.workspace }}/stryker-report
+          mkdir -p ${{ github.workspace }}/stryker-report-pr
 
       - name: Get PR Number
         id: finder
         if: ${{ env.pr-number }} == null
-        uses: jwalton/gh-find-current-pr@v1
-        
+        uses: jwalton/gh-find-current-pr@v1        
 
       - name: Set PR Number        
         id: set-pr-number
         run: |
-          echo "pr=${{ env.pr-number || steps.finder.outputs.pr }}" >> $GITHUB_OUTPUT
-        
+          echo "pr=${{ env.pr-number || steps.finder.outputs.pr }}" >> $GITHUB_OUTPUT        
 
       - name: Get PR Current JSON
         run: gh pr view ${{ steps.set-pr-number.outputs.pr }} -c --json body,comments,url > pr-current.json
@@ -310,7 +305,7 @@ jobs:
       - name: Init PR Report Params
         id: pr-report-params
         run: |
-          file_current="${{ github.workspace }}/stryker-report/pr-report-current.md"
+          file="${{ github.workspace }}/stryker-report-pr/current.md"
 
           if [ ${{ inputs.pr-report-destination }} == "pr-body" ]; then
             pr_body_with_report=$(jq -r 'select(.body | contains("<!--STRYKER-REPORT-->")) | .body' pr-current.json)
@@ -329,74 +324,15 @@ jobs:
 
           if [ -n "$pr_report" ]; then
             echo "Stryker PR Report exists."
-            echo "$pr_report" > "$file_current"
+            echo "$pr_report" > "$file"
             echo "has_current=true" >> $GITHUB_OUTPUT            
-            echo "current_file=$file_current" >> $GITHUB_OUTPUT
+            echo "current_file=$file" >> $GITHUB_OUTPUT
           else
             echo "Stryker PR Report not found."
             echo "has_current=false" >> $GITHUB_OUTPUT
-          fi
+          fi          
 
-          echo "current_url=$pr_report_url" >> $GITHUB_OUTPUT
-
-          cat "$file_current"
-
-      - name: Create Report Files Summary
-        id: create-files-summary
-        run: |
-          file_mutation_report_md="${{ github.workspace }}/stryker-results/reports/mutation-report.md"
-          file_result="${{ github.workspace }}/stryker-report/pr-report-new-files-summary.md"
-
-          if [ -f "$file_mutation_report_md" ]; then
-            echo "Mutation report markdown exists."            
-            table_content=$(sed -n '/# Mutation Testing Summary/,/## The final mutation score is/ {/^|/p}' "$file_mutation_report_md")
-          else
-            echo "Mutation report markdown not found."
-            table_content="To see files summary, please configure (markdown reporter)[https://stryker-mutator.io/docs/stryker-net/configuration/#reporter-string]."
-          fi
-
-          echo "<details>
-
-          <summary>Files summary</summary>
-            
-          $table_content
-            
-          </details>" > "$file_result"
-           
-          echo "file=$file_result" >> $GITHUB_OUTPUT
-
-          cat "$file_result"
-
-      - name: Create Report Content
-        id: create-report-content
-        run: |
-          file_summary="${{ steps.create-files-summary.outputs.file }}"
-          file_result=${{ github.workspace }}/stryker-report/pr-report-new-content.md
-                    
-          if [ "$MUTATION_SCORE_HINT" == "High" ]; then
-            static_badge_color="green"
-          elif [ "$MUTATION_SCORE_HINT" == "Medium" ]; then
-            static_badge_color="yellow"
-          else
-            static_badge_color="red"
-          fi
-
-          static_badge="![Static Badge](https://img.shields.io/badge/$MUTATION_SCORE%25-Mutation%20Tests-$static_badge_color)"
-          formatted_score=$(printf "%.2f" "$MUTATION_SCORE" | sed 's/\./,/')
-
-          echo "<!--STRYKER-PR-$MUTATION_RUN|$MUTATION_RUN_DATE-->
-          ## Mutation Testing Summary $static_badge
-            
-          $(cat $file_summary)
-
-          ### The final mutation score is $formatted_score%
-
-          #### *Coverage Thresholds: high:$THRESHOLD_HIGH low:$THRESHOLD_LOW break:$THRESHOLD_BREAK*
-          " > "$file_result"
-
-          echo "file=$file_result" >> $GITHUB_OUTPUT
-
-          cat "$file_result"
+          cat "$file"      
 
       - name: Create PR Report History - Set Variables        
         if: steps.pr-report-params.outputs.has_current == 'true'
@@ -459,12 +395,12 @@ jobs:
       - name: Create PR Report
         id: create-report
         run: |
-          file_content="${{ steps.create-report-content.outputs.file }}"
+          file_content="${{ github.workspace }}/stryker-reports/report.md"
           file_history="${{ steps.create-report-history.outputs.file }}"          
-          file="${{ github.workspace }}/stryker-report/pr-report-new.md"
+          file="${{ github.workspace }}/stryker-report-pr/new.md"
 
           history_content=""
-          if [ -f "$file_history" ]; then            
+          if [ -f "$file_history" ]; then
             history_content="
           $(cat "$file_history")
 
