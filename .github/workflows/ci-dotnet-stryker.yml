@@ -205,14 +205,14 @@ jobs:
           file_result=${{ github.workspace }}/stryker-reports/report.md
                     
           if [ "$MUTATION_SCORE_HINT" == "High" ]; then
-            static_badge_color="green"
+            static_badge_color="0E8A16"
           elif [ "$MUTATION_SCORE_HINT" == "Medium" ]; then
-            static_badge_color="yellow"
+            static_badge_color="FDD835"
           else
-            static_badge_color="red"
+            static_badge_color="B60205"
           fi
 
-          static_badge="![Static Badge](https://img.shields.io/badge/$MUTATION_SCORE%25-Mutation%20Tests-$static_badge_color)"
+          static_badge="![Static Badge](https://img.shields.io/badge/$MUTATION_SCORE%25-Mutation%20Tests-$static_badge_color?logo=stryker)"
           formatted_score=$(printf "%.2f" "$MUTATION_SCORE" | sed 's/\./,/')
 
           echo "## Mutation Testing Summary $static_badge
