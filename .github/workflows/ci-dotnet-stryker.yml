@@ -125,8 +125,124 @@ jobs:
           name: stryker-results
           path: ${{ github.workspace }}/stryker-results/
 
-  stryker-report:
+  stryker-report:    
     needs: stryker-run
+    runs-on: ubuntu-latest    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Stryker Results
+        uses: actions/download-artifact@v4
+        with:
+          name: stryker-results
+          path: ${{ github.workspace }}/stryker-results/
+
+      - name: Capture Results
+        run: |
+          file="${{ github.workspace }}/stryker-results/stryker.json"
+          mutation_run=$(jq -r '.mutation_run' "$file")
+          mutation_run_date=$(jq -r '.mutation_run_date' "$file")
+          mutation_score=$(jq '.mutation_score' "$file")
+          mutation_score_hint=$(jq -r '.mutation_score_hint' "$file")
+          threshold_high=$(jq '.threshold_high' "$file")
+          threshold_low=$(jq '.threshold_low' "$file")
+          threshold_break=$(jq '.threshold_break' "$file")
+
+          echo "MUTATION_RUN=$mutation_run" >> $GITHUB_ENV
+          echo "MUTATION_RUN_DATE=$mutation_run_date" >> $GITHUB_ENV
+          echo "MUTATION_SCORE=$mutation_score" >> $GITHUB_ENV
+          echo "MUTATION_SCORE_HINT=$mutation_score_hint" >> $GITHUB_ENV
+          echo "THRESHOLD_HIGH=$threshold_high" >> $GITHUB_ENV
+          echo "THRESHOLD_LOW=$threshold_low" >> $GITHUB_ENV
+          echo "THRESHOLD_BREAK=$threshold_break" >> $GITHUB_ENV
+
+      - name: Show Mutation Score
+        run: |
+          echo "Mutation Run: $MUTATION_RUN" 
+          echo "Mutation Run Date: $MUTATION_RUN_DATE" 
+          echo "Mutation Score: $MUTATION_SCORE"
+          echo "Mutation Score Hint: $MUTATION_SCORE_HINT"
+          echo "Threshold High: $THRESHOLD_HIGH"
+          echo "Threshold Low: $THRESHOLD_LOW"
+          echo "Threshold Break: $THRESHOLD_BREAK"
+          echo "Mutation Score Hint: $MUTATION_SCORE_HINT"
+
+      - name: Create Report Folder
+        run: |
+          mkdir -p ${{ github.workspace }}/stryker-reports
+
+      - name: Create Report Files Summary
+        id: create-files-summary
+        run: |
+          file_mutation_report_md="${{ github.workspace }}/stryker-results/reports/mutation-report.md"
+          file_result="${{ github.workspace }}/stryker-reports/report-files-summary.md"
+
+          if [ -f "$file_mutation_report_md" ]; then
+            echo "Mutation report markdown exists."            
+            table_content=$(sed -n '/# Mutation Testing Summary/,/## The final mutation score is/ {/^|/p}' "$file_mutation_report_md")
+          else
+            echo "Mutation report markdown not found."
+            table_content="To see files summary, please configure (markdown reporter)[https://stryker-mutator.io/docs/stryker-net/configuration/#reporter-string]."
+          fi
+
+          echo "<details>
+
+          <summary>Files summary</summary>
+            
+          $table_content
+            
+          </details>" > "$file_result"
+           
+          echo "file=$file_result" >> $GITHUB_OUTPUT
+
+          cat "$file_result"
+
+      - name: Create Report Content
+        id: create-report-content
+        run: |
+          file_summary="${{ steps.create-files-summary.outputs.file }}"
+          file_result=${{ github.workspace }}/stryker-reports/report.md
+                    
+          if [ "$MUTATION_SCORE_HINT" == "High" ]; then
+            static_badge_color="green"
+          elif [ "$MUTATION_SCORE_HINT" == "Medium" ]; then
+            static_badge_color="yellow"
+          else
+            static_badge_color="red"
+          fi
+
+          static_badge="![Static Badge](https://img.shields.io/badge/$MUTATION_SCORE%25-Mutation%20Tests-$static_badge_color)"
+          formatted_score=$(printf "%.2f" "$MUTATION_SCORE" | sed 's/\./,/')
+
+          echo "## Mutation Testing Summary $static_badge
+            
+          $(cat $file_summary)
+
+          ### The final mutation score is $formatted_score%
+
+          #### *Coverage Thresholds: high:$THRESHOLD_HIGH low:$THRESHOLD_LOW break:$THRESHOLD_BREAK*
+          " > "$file_result"
+
+          echo "file=$file_result" >> $GITHUB_OUTPUT
+
+          cat "$file_result"
+          
+      - name: Report GitHub Summary
+        run : |
+          file="${{ steps.create-report-content.outputs.file }}"
+          cat "$file" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload Stryker Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: stryker-reports
+          path: ${{ github.workspace }}/stryker-reports/
+
+
+  stryker-report-pull-request:
+    if: ${{ github.event_name == 'pull_request' }}
+    needs: stryker-report
     runs-on: ubuntu-latest
     env:
       pr-number: ${{ inputs.pr-number }}
