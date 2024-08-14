@@ -12,9 +12,9 @@ jobs:
   ci-config:
     uses: ./.github/workflows/ci-config-v2.yml  
 
-  ci-dotnet-stryker:
-    uses: ./.github/workflows/ci-dotnet-stryker.yml
-    secrets: inherit
+  #ci-dotnet-stryker:
+  #  uses: ./.github/workflows/ci-dotnet-stryker.yml
+  #  secrets: inherit
 
   get-prnumber:
     needs: ci-config

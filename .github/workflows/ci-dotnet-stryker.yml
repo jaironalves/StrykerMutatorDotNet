@@ -3,6 +3,9 @@ name: CI DotNet Stryker
 on:
   workflow_call:
     inputs:
+      pr-number:
+        type: number
+        description: "Pull Request Number"        
       pr-report-destination:
         type: string
         description: "Destination to post PR report"
@@ -125,6 +128,8 @@ jobs:
   stryker-report:
     needs: stryker-run
     runs-on: ubuntu-latest
+    env:
+      pr-number: ${{ inputs.pr-number }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -169,11 +174,20 @@ jobs:
         run: |
           mkdir -p ${{ github.workspace }}/stryker-report
 
-      - uses: jwalton/gh-find-current-pr@v1
+      - name: Get PR Number
         id: finder
+        if: ${{ env.pr-number }} == null
+        uses: jwalton/gh-find-current-pr@v1
+        
+
+      - name: Set PR Number        
+        id: set-pr-number
+        run: |
+          echo "pr=${{ env.pr-number || steps.finder.outputs.pr }}" >> $GITHUB_OUTPUT
+        
 
       - name: Get PR Current JSON
-        run: gh pr view ${{ steps.finder.outputs.pr }} -c --json body,comments,url > pr-current.json
+        run: gh pr view ${{ steps.set-pr-number.outputs.pr }} -c --json body,comments,url > pr-current.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -194,7 +208,7 @@ jobs:
           fi
 
           echo "destination=${{ inputs.pr-report-destination }}" >> $GITHUB_OUTPUT
-          echo "pr_number=${{ steps.finder.outputs.pr }}" >> $GITHUB_OUTPUT
+          echo "pr_number=${{ steps.set-pr-number.outputs.pr }}" >> $GITHUB_OUTPUT
           echo "pr_report_comment_id=$pr_report_comment_id" >> $GITHUB_OUTPUT
 
           if [ -n "$pr_report" ]; then
@@ -281,7 +295,7 @@ jobs:
           score=$(sed -n 's/.*mutation score is \(.*\)$/\1/p' "$file_current")
           thresholds=$(sed -n '/Coverage Thresholds.*high/s/.*high/high/; s/\*//gp' "$file_current")
 
-          gmt_minus_3_date_time=$(TZ='America/Sao_Paulo' date -d "$date_time" +"%d/%m/%Y %H:%M:%S %Z")
+          gmt_minus_3_date_time=$(TZ='America/Sao_Paulo' date -d "$date_time" +"%d-%m-%Y %H:%M:%S %Z")
           echo "GMT-3 Date Time: $gmt_minus_3_date_time"
 
           echo "HISTORY_RUN_NUMBER=$run_number" >> $GITHUB_ENV
