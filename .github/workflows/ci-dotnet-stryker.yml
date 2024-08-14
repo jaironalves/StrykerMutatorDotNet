@@ -212,8 +212,8 @@ jobs:
             static_badge_color="B60205"
           fi
 
-          static_badge="![Static Badge](https://img.shields.io/badge/$MUTATION_SCORE%25-Mutation%20Tests-$static_badge_color?logo=stryker&labelColor=424242)"
           formatted_score=$(printf "%.2f" "$MUTATION_SCORE" | sed 's/\./,/')
+          static_badge="![Static Badge](https://img.shields.io/badge/$formatted_score%25-Mutation%20Tests-$static_badge_color?logo=stryker&labelColor=424242)"          
 
           echo "## Mutation Testing Summary $static_badge
             
