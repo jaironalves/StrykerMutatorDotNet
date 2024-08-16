@@ -592,6 +592,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          git config --global user.email "github-actions@github.com"
+          git config --global user.name "github-actions" 
+         
           git add index.html
           git commit -m "Update index.html with mutation reports"
           git push origin pages --force
