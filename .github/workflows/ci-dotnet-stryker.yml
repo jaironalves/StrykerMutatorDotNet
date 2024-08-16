@@ -511,7 +511,9 @@ jobs:
       - stryker-run      
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4    
+        uses: actions/checkout@v4
+        with:
+          ref: pages
 
       - name: Download Stryker Results
         uses: actions/download-artifact@v4
@@ -528,11 +530,11 @@ jobs:
           mv ${{ github.workspace }}/stryker-results/reports/mutation-report.html ${{ github.workspace }}/stryker-pages/
           mv ${{ github.workspace }}/stryker-results/stryker.json ${{ github.workspace }}/stryker-pages/
 
-      - name: Checkout gh-pages branch
-        run: |
-          git fetch origin pages
-          git checkout pages
-        
+      # - name: Checkout gh-pages branch
+      #   run: |
+      #     git fetch origin pages
+      #     git checkout pages
+
       - name: Move Reports to Branch Folder
         run: |
            branch_name=${{ github.head_ref }}
@@ -543,7 +545,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git config --global user.email "github-actions@noreply.com"
+          git config --global user.email "github-actions@github.com"
           git config --global user.name "github-actions"
           
           branch_name=${{ github.head_ref }}
