@@ -6,7 +6,8 @@ on:
       - 'feature/**'
 
 permissions:
-  pull-requests: write 
+  pull-requests: write
+  contents: write
 
 jobs:
   ci-config:
