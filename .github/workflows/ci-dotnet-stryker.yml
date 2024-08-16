@@ -505,7 +505,7 @@ jobs:
           fi
 
 
-  stryker-pages:    
+  stryker-pages-add-or-update:    
     runs-on: ubuntu-latest
     needs:
       - stryker-run      
@@ -548,9 +548,21 @@ jobs:
           git config --global user.email "github-actions@github.com"
           git config --global user.name "github-actions"          
 
-          
-          branch_name=${{ github.head_ref }}
-          git add $branch_name
-          git commit -m "Add Stryker Mutation Test Report for branch $branch_name"
-          git push origin pages --force    
-       
+          #branch_name=${{ github.head_ref }}
+          #git add $branch_name
+          #git commit -m "Add Stryker Mutation Test Report for branch $branch_name"
+          #git push origin pages --force
+
+  stryker-pages-create-index:    
+    runs-on: ubuntu-latest
+    needs:
+      - stryker-pages-add-or-update
+    steps:          
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: pages
+
+      - name: Find stryker.json files in feature directory
+        run: |
+          find feature -type f -name "stryker.json"
