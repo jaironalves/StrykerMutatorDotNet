@@ -503,3 +503,45 @@ jobs:
           else
             gh pr edit $PR_NUMBER --add-label "mutation-test-low" --remove-label "mutation-test-high,mutation-test-medium"
           fi
+
+
+  stryker-pages:    
+    runs-on: ubuntu-latest
+    needs:
+      - stryker-run      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4    
+
+      - name: Download Stryker Results
+        uses: actions/download-artifact@v4
+        with:
+          name: stryker-results
+          path: ${{ github.workspace }}/stryker-results/
+
+      - name: Create Pages Folder
+        run: |
+          mkdir -p ${{ github.workspace }}/stryker-pages
+
+      - name: Move Reports to Pages
+        run: |
+          mv ${{ github.workspace }}/stryker-results/reports/mutation-report.html ${{ github.workspace }}/stryker-pages/
+          mv ${{ github.workspace }}/stryker-results/stryker.json ${{ github.workspace }}/stryker-pages/
+
+          - name: Checkout gh-pages branch
+          run: |
+            git fetch origin gh-pages
+            git checkout gh-pages
+        
+      - name: Move Reports to Branch Folder
+        run: |
+           branch_name=${{ github.ref_name }}
+           mkdir -p $branch_name
+           mv ${{ github.workspace }}/stryker-pages/* $branch_name/
+        
+      - name: Commit and Push Reports
+        run: |
+          git add $branch_name
+          git commit -m "Add Stryker Mutation Test Report for branch $branch_name"
+          git push origin gh-pages --force    
+       
