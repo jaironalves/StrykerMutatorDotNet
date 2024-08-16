@@ -530,8 +530,8 @@ jobs:
 
       - name: Checkout gh-pages branch
         run: |
-          git fetch origin gh-pages
-          git checkout gh-pages
+          git fetch origin pages
+          git checkout pages
         
       - name: Move Reports to Branch Folder
         run: |
@@ -543,5 +543,5 @@ jobs:
         run: |
           git add $branch_name
           git commit -m "Add Stryker Mutation Test Report for branch $branch_name"
-          git push origin gh-pages --force    
+          git push origin pages --force    
        
