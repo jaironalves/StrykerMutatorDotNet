@@ -528,10 +528,10 @@ jobs:
           mv ${{ github.workspace }}/stryker-results/reports/mutation-report.html ${{ github.workspace }}/stryker-pages/
           mv ${{ github.workspace }}/stryker-results/stryker.json ${{ github.workspace }}/stryker-pages/
 
-          - name: Checkout gh-pages branch
-          run: |
-            git fetch origin gh-pages
-            git checkout gh-pages
+      - name: Checkout gh-pages branch
+        run: |
+          git fetch origin gh-pages
+          git checkout gh-pages
         
       - name: Move Reports to Branch Folder
         run: |
