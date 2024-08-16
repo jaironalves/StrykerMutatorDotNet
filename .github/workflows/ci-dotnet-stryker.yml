@@ -578,7 +578,7 @@ jobs:
             mutation_score=$(jq -r '.mutation_score' $file)
             report_dir=$(dirname $file)
             report_link="$report_dir/mutation-report.html"
-            reports+=("$mutation_run_date $mutation_score $report_link")
+            reports+=("$mutation_run_date|$mutation_score|$report_link")
           done
           sorted_reports=$(printf "%s\n" "${reports[@]}" | sort)
           
@@ -607,9 +607,9 @@ jobs:
           
           for report in $sorted_reports; do
             echo "Report: $report"
-            mutation_run_date=$(echo $report | cut -d' ' -f1)
-            mutation_score=$(echo $report | cut -d' ' -f2)
-            report_link=$(echo $report | cut -d' ' -f3)
+            mutation_run_date=$(echo $report | cut -d'|' -f1)
+            mutation_score=$(echo $report | cut -d'|' -f2)
+            report_link=$(echo $report | cut -d'|' -f3)
             echo "<tr>" >> index.html
             echo "<td class=\"py-2 px-4 border-b\">$mutation_run_date</td>" >> index.html
             echo "<td class=\"py-2 px-4 border-b\">$mutation_score</td>" >> index.html
