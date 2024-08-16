@@ -535,12 +535,16 @@ jobs:
         
       - name: Move Reports to Branch Folder
         run: |
-           branch_name=${{ github.ref_name }}
+           branch_name=${{ github.head_ref }}
            mkdir -p $branch_name
            mv ${{ github.workspace }}/stryker-pages/* $branch_name/
         
       - name: Commit and Push Reports
         run: |
+          git config --global user.email "github-actions@noreply.com"
+          git config --global user.name "github-actions"
+          
+          branch_name=${{ github.head_ref }}
           git add $branch_name
           git commit -m "Add Stryker Mutation Test Report for branch $branch_name"
           git push origin pages --force    
