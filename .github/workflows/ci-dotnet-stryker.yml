@@ -692,7 +692,7 @@ jobs:
           <div class=\"flex space-x-4\">
           <div><a href=\"report_html\" class="text-blue-500">.html</a></div>
           <div><a href=\"$report_md\" class="text-blue-500">.md</a></div>
-          </div>          
+          </div></td>" >> index.html
 
             echo "</tr>" >> index.html
           done
