@@ -580,7 +580,7 @@ jobs:
             mutation_run_branch=$(jq -r '.mutation_run_branch' $file)
             mutation_run_pull=$(jq -r '.mutation_run_pull' $file)
             mutation_run_date=$(jq -r '.mutation_run_date' $file)
-            mutation_score=$(jq -r '.mutation_score' $file)
+            mutation_score=$(jq '.mutation_score' $file)
             mutation_score_hint=$(jq -r '.mutation_score_hint' $file)
 
             if [ "$mutation_score_hint" == "High" ]; then
@@ -597,7 +597,7 @@ jobs:
 
             branch_score="https://img.shields.io/badge/$formatted_branch-$formatted_score-$static_badge_color?logo=github&labelColor=424242"
             updated_at=$(TZ='America/Sao_Paulo' date -d "$mutation_run_date" +"%d-%m-%Y %H:%M:%S %Z")
-            pull_request=$(echo "$mutation_run_pr" | sed 's/.*\///')
+            pull_request="$mutation_run_pull"
             report_html="$report_dir/mutation-report.html"
             report_md="$report_dir/mutation-report.md"
             
