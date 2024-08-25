@@ -551,9 +551,9 @@ jobs:
           git config --global user.name "github-actions"          
 
           #branch_name=${{ github.head_ref }}
-          #git add $branch_name
-          #git commit -m "Add Stryker Mutation Test Report for branch $branch_name"
-          #git push origin pages --force
+          git add $branch_name
+          git commit -m "Add Stryker Mutation Test Report for branch $branch_name"
+          git push origin pages --force
 
   stryker-pages-create-index:
     runs-on: ubuntu-latest
@@ -819,9 +819,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          #git config --global user.email "github-actions@github.com"
-          #git config --global user.name "github-actions" 
+          git config --global user.email "github-actions@github.com"
+          git config --global user.name "github-actions" 
 
-          #git add index.html
-          #git commit -m "Update index.html with mutation reports"
-          #git push origin pages --force
+          git add index.html
+          git commit -m "Update index.html with mutation reports"
+          git push origin pages --force
