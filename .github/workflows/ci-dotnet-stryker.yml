@@ -593,7 +593,7 @@ jobs:
 
             formatted_score=$(printf "%.2f" "$mutation_score" | sed 's/\./,')
             echo "score ok"
-            #formatted_branch=$(echo "$mutation_run_branch" | sed 's/-/--/g')
+            formatted_branch=$(echo "$mutation_run_branch" | sed 's/-/--/g')
             echo "branch ok"
             report_dir=$(dirname $file)
 
@@ -607,31 +607,7 @@ jobs:
           done
           sorted_reports=$(printf "%s\n" "${reports[@]}" | sort)
           
-          echo $sorted_reports
-
-          json_array="["
-
-          for report in $sorted_reports; do
-            branch_score=$(echo $report | cut -d'|' -f2)
-            updated_at=$(echo $report | cut -d'|' -f3)
-            pull_request=$(echo $report | cut -d'|' -f4)
-            report_html=$(echo $report | cut -d'|' -f5)
-            report_md=$(echo $report | cut -d'|' -f6)
-            
-            json_object=$(jq -n \
-              --arg branch_score "$branch_score" \
-              --arg updated_at "$updated_at" \
-              --arg pull_request "$pull_request" \
-              --arg report_html "$report_html" \
-              --arg report_md "$report_md" \
-              '{branch_score: $branch_score, updated_at: $updated_at, pull_request: $pull_request, report_html: $report_html, report_md: $report_md}')
-            
-            json_array+="$json_object,"
-          done                    
-          json_array="${json_array%,}]"
-
-          echo "$json_array" > html-table-data.json
-          cat html-table-data.json
+          echo $sorted_reports         
 
       - name: Generate HTML table
         id: generate-html
