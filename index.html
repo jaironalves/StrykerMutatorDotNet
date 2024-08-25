@@ -5,23 +5,148 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mutation Test Reports</title>
 <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    let rowsPerPage = 20;
+    let currentPage = 1;
+    const table = document.querySelector('table tbody');
+    const rows = Array.from(table.querySelectorAll('tr'));
+    const pagination = document.querySelector('#pagination');
+    const rowsPerPageSelect = document.querySelector('#rowsPerPage');
+
+    function showPage(page) {
+      currentPage = page;
+      const start = (page - 1) * rowsPerPage;
+      const end = start + rowsPerPage;
+      rows.forEach((row, index) => {
+        row.style.display = (index >= start && index < end) ? '' : 'none';
+      });
+      updatePagination();
+    }
+
+    function createPagination() {
+      pagination.innerHTML = '';
+      const totalPages = Math.ceil(rows.length / rowsPerPage);
+
+      const prevButton = document.createElement('a');
+      prevButton.href = '#';
+      prevButton.classList.add('relative', 'inline-flex', 'items-center', 'rounded-l-md', 'px-2', 'py-2', 'text-gray-400', 'ring-1', 'ring-inset', 'ring-gray-300', 'hover:bg-gray-50', 'focus:z-20', 'focus:outline-offset-0');
+
+      let prevInnerHTML='<span class="sr-only">Anterior</span>';
+      prevInnerHTML+='<svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">';
+      prevInnerHTML+='<path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />';
+      prevInnerHTML+='</svg>';
+      prevButton.innerHTML = prevInnerHTML;
+
+      prevButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (currentPage > 1) showPage(currentPage - 1);
+      });
+      pagination.appendChild(prevButton);
+
+      for (let i = 1; i <= totalPages; i++) {
+        const button = document.createElement('a');
+        button.href = '#';
+        button.classList.add('relative', 'inline-flex', 'items-center', 'px-4', 'py-2', 'text-sm', 'font-semibold', 'focus:z-20');
+        button.textContent = i;            
+        if (i === currentPage) {
+          button.classList.add('text-white', 'z-10', 'bg-indigo-600', 'focus-visible:outline', 'focus-visible:outline-2', 'focus-visible:outline-offset-2', 'focus-visible:outline-indigo-600');
+        } else {
+          button.classList.add('text-gray-900', 'ring-1', 'ring-inset', 'ring-gray-300', 'hover:bg-gray-50', 'focus:outline-offset-0');
+        }
+        button.addEventListener('click', () => showPage(i));
+        pagination.appendChild(button);
+      }
+
+      const nextButton = document.createElement('a');
+      nextButton.href = '#';
+      nextButton.classList.add('relative', 'inline-flex', 'items-center', 'rounded-r-md', 'px-2', 'py-2', 'text-gray-400', 'ring-1', 'ring-inset', 'ring-gray-300', 'hover:bg-gray-50', 'focus:z-20', 'focus:outline-offset-0');
+      let nextInnerHTML='<span class="sr-only">Próxima</span>';
+      nextInnerHTML+='<svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">';
+      nextInnerHTML+='<path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />';
+      nextInnerHTML+='</svg>';
+      
+      nextButton.innerHTML = nextInnerHTML;	
+      nextButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (currentPage < totalPages) showPage(currentPage + 1);
+      });
+      pagination.appendChild(nextButton);
+    }
+
+    function updatePagination() {
+      createPagination();
+    }
+
+    rowsPerPageSelect.addEventListener('change', function() {
+      rowsPerPage = parseInt(this.value, 10);
+      showPage(1);
+    });
+
+    showPage(1);
+  });          
+</script>
 </head>
-<body class="bg-gray-100 p-6">
+<body class="bg-gray-100 flex justify-center min-h-screen p-6">
 <div class="container mx-auto">
 <h1 class="text-2xl font-bold mb-4">Mutation Test Reports</h1>
+<div class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
+  <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+  <div>
+  <label for="rowsPerPage" class="mr-2">Itens por página:</label>
+  <select id="rowsPerPage" class="border rounded p-2">
+    <option value="10">10</option>
+    <option value="20">20</option>
+    <option value="50">50</option>
+    <option value="100">100</option>
+  </select>
+  </div>
+  <div>
+  <nav id="pagination" class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Paginação" />
+  </div>
+
+  <div>
+  <p class="text-sm text-gray-700">
+  Página
+  <span class="font-medium">1</span>
+  de
+  <span class="font-medium">3</span>
+  / Total de
+  <span class="font-medium">97</span>
+  resultados
+  </p>
+  </div>
+
+  </div>
+</div>
 <table class="min-w-full bg-white">
 <thead>
 <tr>
-<th class="py-2 px-4 border-b">Mutation Run Date</th>
-<th class="py-2 px-4 border-b">Mutation Score</th>
-<th class="py-2 px-4 border-b">Report Link</th>
+<th class="py-2 px-4 border-b">Branch Score</th>
+<th class="py-2 px-4 border-b"><div class="flex">Atualização</div></th>
+<th class="py-2 px-4 border-b"><div class="flex">Pull Request</div></th>
+<th class="py-2 px-4 border-b">
+<div class="flex">Relatórios</div>
+<div class="flex space-x-4">
+<div>HTML</div>
+<div>Markdown</div>
+</div>
+</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td class="py-2 px-4 border-b">2024-08-16T01:38:18Z</td>
-<td class="py-2 px-4 border-b">20</td>
-<td class="py-2 px-4 border-b"><a href="feature/app-test/mutation-report.html" class="text-blue-500">feature/app-test/mutation-report.html</a></td>
+<td class="border-b">
+<div class="py-2 px-4 flex justify-center"><img alt="Static Badge"
+src="https://img.shields.io/badge/feature/app--test-20,00%25-FDD835?logo=github&labelColor=424242">
+</div></td>
+<td class="py-2 px-4 border-b">25-08-2024 03:13:21</td>
+<td class="py-2 px-4 border-b"><a href=""3"" class="text-blue-500">Veja o Pull</a></td>
+<td class="py-2 px-4 border-b">
+<div class="flex space-x-4">
+<div><a href="report_html" class="text-blue-500">.html</a></div>
+<div><a href="feature/app-test/mutation-report.md" class="text-blue-500">.md</a></div>
+</div></td>
 </tr>
 </tbody>
 </table>
