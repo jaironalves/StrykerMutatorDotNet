@@ -590,20 +590,18 @@ jobs:
              else
                static_badge_color="B60205"
              fi
-
-             formatted_score=$(printf "%.2f" "$mutation_score" | sed 's/\./,')
-             echo "score ok"
-             formatted_branch=$(echo "$mutation_run_branch" | sed 's/-/--/g')
-             echo "branch ok"
+             
+             formatted_score=$(printf "%.2f" "$MUTATION_SCORE" | sed 's/\./,/')             
+             formatted_branch=$(echo "$mutation_run_branch" | sed 's/-/--/g')             
              report_dir=$(dirname $file)
 
-          #   branch_score="https://img.shields.io/badge/$formatted_branch-$formatted_score-$static_badge_color?logo=github&labelColor=424242"
-          #   updated_at=$(TZ='America/Sao_Paulo' date -d "$mutation_run_date" +"%d-%m-%Y %H:%M:%S %Z")
-          #   pull_request="$mutation_run_pull"
-          #   report_html="$report_dir/mutation-report.html"
-          #   report_md="$report_dir/mutation-report.md"
+             branch_score="https://img.shields.io/badge/$formatted_branch-$formatted_score-$static_badge_color?logo=github&labelColor=424242"
+             updated_at=$(TZ='America/Sao_Paulo' date -d "$mutation_run_date" +"%d-%m-%Y %H:%M:%S %Z")
+             pull_request="$mutation_run_pull"
+             report_html="$report_dir/mutation-report.html"
+             report_md="$report_dir/mutation-report.md"
             
-          #   reports+=("$mutation_run_date|$branch_score|$updated_at|$pull_request|$pull_request|$report_html|$report_md")
+             reports+=("$mutation_run_date|$branch_score|$updated_at|$pull_request|$pull_request|$report_html|$report_md")
           done
           sorted_reports=$(printf "%s\n" "${reports[@]}" | sort)
           
