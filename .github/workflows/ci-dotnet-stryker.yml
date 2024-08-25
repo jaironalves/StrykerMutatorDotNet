@@ -108,7 +108,7 @@ jobs:
         run: |
           file_result="${{ github.workspace }}/stryker-results/stryker.json"
           run_date=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          run_branch=$(echo "${{ github.ref }}" | sed 's/refs\/heads\///')
+          run_branch=${{ github.head_ref }}
           run_pull=$(echo "${{ github.event.number }}" | sed 's/refs\/pull\///')
           echo "{
             \"mutation_run\": \"${{ github.run_number }}-${{ github.run_attempt }}\",
@@ -578,7 +578,7 @@ jobs:
           reports=()
           for file in $json_files; do
              mutation_run_branch=$(jq -r '.mutation_run_branch' $file)
-             mutation_run_pull=$(jq -r '.mutation_run_pull' $file)
+             mutation_run_pull=$(jq '.mutation_run_pull' $file)
              mutation_run_date=$(jq -r '.mutation_run_date' $file)
              mutation_score=$(jq '.mutation_score' $file)
              mutation_score_hint=$(jq -r '.mutation_score_hint' $file)
@@ -591,7 +591,7 @@ jobs:
                static_badge_color="B60205"
              fi
              
-             formatted_score=$(printf "%.2f" "$MUTATION_SCORE" | sed 's/\./,/')             
+             formatted_score=$(printf "%.2f" "$mutation_score" | sed 's/\./,/')             
              formatted_branch=$(echo "$mutation_run_branch" | sed 's/-/--/g')             
              report_dir=$(dirname $file)
 
@@ -601,7 +601,7 @@ jobs:
              report_html="$report_dir/mutation-report.html"
              report_md="$report_dir/mutation-report.md"
             
-             reports+=("$mutation_run_date|$branch_score|$updated_at|$pull_request|$pull_request|$report_html|$report_md")
+             reports+=("$mutation_run_date|$branch_score|$updated_at|$pull_request|$report_html|$report_md")
           done
           sorted_reports=$(printf "%s\n" "${reports[@]}" | sort)
           
