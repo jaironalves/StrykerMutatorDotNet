@@ -583,13 +583,13 @@ jobs:
              mutation_score=$(jq '.mutation_score' $file)
              mutation_score_hint=$(jq -r '.mutation_score_hint' $file)
 
-          #   if [ "$mutation_score_hint" == "High" ]; then
-          #     static_badge_color="0E8A16"
-          #   elif [ "$mutation_score_hint" == "Medium" ]; then
-          #     static_badge_color="FDD835"
-          #   else
-          #     static_badge_color="B60205"
-          #   fi
+             if [ "$mutation_score_hint" == "High" ]; then
+               static_badge_color="0E8A16"
+             elif [ "$mutation_score_hint" == "Medium" ]; then
+               static_badge_color="FDD835"
+             else
+               static_badge_color="B60205"
+             fi
 
           #   formatted_score=$(printf "%.2f" "$mutation_score" | sed 's/\./,')
           #   echo "score ok"
