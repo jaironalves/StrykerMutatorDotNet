@@ -5,11 +5,11 @@ on:
     inputs:
       pr-number:
         type: number
-        description: "Pull Request Number"        
+        description: "Pull Request Number"
       pr-report-destination:
         type: string
         description: "Destination to post PR report"
-        default: "pr-body" 
+        default: "pr-body"
       pr-comment-mark:
         type: string
         description: "String to mark the PR comment"
@@ -129,9 +129,9 @@ jobs:
           name: stryker-results
           path: ${{ github.workspace }}/stryker-results/
 
-  stryker-report:    
+  stryker-report:
     needs: stryker-run
-    runs-on: ubuntu-latest    
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -231,9 +231,9 @@ jobs:
           echo "file=$file_result" >> $GITHUB_OUTPUT
 
           cat "$file_result"
-          
+
       - name: Report GitHub Summary
-        run : |
+        run: |
           file="${{ steps.create-report-content.outputs.file }}"
           cat "$file" >> $GITHUB_STEP_SUMMARY
 
@@ -243,10 +243,9 @@ jobs:
           name: stryker-reports
           path: ${{ github.workspace }}/stryker-reports/
 
-
   stryker-report-pull-request:
     if: ${{ github.event_name == 'pull_request' }}
-    needs: 
+    needs:
       - stryker-run
       - stryker-report
     runs-on: ubuntu-latest
@@ -260,14 +259,14 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: stryker-results
-          path: ${{ github.workspace }}/stryker-results/      
+          path: ${{ github.workspace }}/stryker-results/
 
       - name: Capture Mutation Score Hint
         run: |
           file="${{ github.workspace }}/stryker-results/stryker.json"         
           mutation_score_hint=$(jq -r '.mutation_score_hint' "$file")
-          
-          echo "MUTATION_SCORE_HINT=$mutation_score_hint" >> $GITHUB_ENV          
+
+          echo "MUTATION_SCORE_HINT=$mutation_score_hint" >> $GITHUB_ENV
 
       - name: Download Stryker Reports
         uses: actions/download-artifact@v4
@@ -282,12 +281,12 @@ jobs:
       - name: Get PR Number
         id: finder
         if: ${{ env.pr-number }} == null
-        uses: jwalton/gh-find-current-pr@v1        
+        uses: jwalton/gh-find-current-pr@v1
 
-      - name: Set PR Number        
+      - name: Set PR Number
         id: set-pr-number
         run: |
-          echo "pr=${{ env.pr-number || steps.finder.outputs.pr }}" >> $GITHUB_OUTPUT        
+          echo "pr=${{ env.pr-number || steps.finder.outputs.pr }}" >> $GITHUB_OUTPUT
 
       - name: Get PR Current JSON
         run: gh pr view ${{ steps.set-pr-number.outputs.pr }} -c --json body,comments,url > pr-current.json
@@ -324,15 +323,15 @@ jobs:
             echo "has_current=false" >> $GITHUB_OUTPUT
           fi          
 
-          cat "$file"      
+          cat "$file"
 
-      - name: Create PR Report History - Set Variables        
+      - name: Create PR Report History - Set Variables
         if: steps.pr-report-params.outputs.has_current == 'true'
         run: |
           file_current="${{ steps.pr-report-params.outputs.current_file }}"          
-  
+
           title_line=$(sed -n '/Mutation Testing Summary.*!\[Static Badge\].*/p' "$file_current")
-  
+
           run_number=$(sed -n 's/^<!--STRYKER-PR-\([^|]*\)|.*/\1/p' "$file_current")
           date_time=$(sed -n 's/^<!--STRYKER-PR.*|\(.*\)-->.*/\1/p' "$file_current")
           badge=$(echo "$title_line" | sed 's/.*!\[Static Badge\]/![Static Badge]/')
@@ -354,7 +353,7 @@ jobs:
         run: |
           file="${{ github.workspace }}/stryker-report-pr/new-content-history.md"
           file_current="${{ steps.pr-report-params.outputs.current_file }}"
-          
+
           history_table=$(sed -n '/<!--HISTORY-->/, /<!--HISTORY-END-->/ { //!p; }' "$file_current")
 
           history_line="|$HISTORY_RUN_DATE|$HISTORY_RUN_NUMBER|$HISTORY_THRESHOLDS|$HISTORY_SCORE|$HISTORY_BADGE|" 
@@ -377,7 +376,7 @@ jobs:
           $history_table
           $history_line
           <!--HISTORY-END-->
-          
+
           </details>" > "$file"
 
           echo "file=$file" >> $GITHUB_OUTPUT
@@ -408,7 +407,7 @@ jobs:
           echo "file=$file" >> $GITHUB_OUTPUT
 
           cat "$file"
-      
+
       # - name: Create or Update Report Comment
       #   if: steps.pr-report-params.outputs.destination != 'pr-body'
       #   env:
@@ -434,22 +433,22 @@ jobs:
       #         "/repos/$REPOSITORY/issues/comments/$PR_REPORT_COMMENT_ID" \
       #         -f body="$body"
       #     fi
-          
+
       - name: Update Report PR Body
         if: steps.pr-report-params.outputs.destination == 'pr-body'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ steps.pr-report-params.outputs.pr_number }}          
-          REPORT_CONTENT: ${{ steps.create-report.outputs.file }}        
-        run: |          
+          PR_NUMBER: ${{ steps.pr-report-params.outputs.pr_number }}
+          REPORT_CONTENT: ${{ steps.create-report.outputs.file }}
+        run: |
           pr_body_json=$(jq -r '.body' pr-current.json)
           pr_body=$(echo "$pr_body_json" | tr -d '\r')          
-          
+
           report_content=$(cat "${{ steps.create-report.outputs.file }}")          
 
           start_marker="<!--STRYKER-REPORT-->"
           end_marker="<!--STRYKER-REPORT-END-->"
-          
+
           if [[ "$pr_body" == *"$start_marker"* && "$pr_body" == *"$end_marker"* ]]; then
             echo "Updating existing report content..."
             
@@ -482,7 +481,7 @@ jobs:
             echo "Adding new report content..."
             pr_body_new="${pr_body:+$pr_body\n\n\n\n}$report_content"
           fi
-          
+
           echo "$pr_body_new"
 
           #gh pr edit $PR_NUMBER --body "$pr_body_new"
@@ -497,7 +496,7 @@ jobs:
 
       - name: Update PR Report Labels
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ steps.pr-report-params.outputs.pr_number }}
         run: |
           if [ "$MUTATION_SCORE_HINT" == "High" ]; then
@@ -508,11 +507,10 @@ jobs:
             gh pr edit $PR_NUMBER --add-label "mutation-test-low" --remove-label "mutation-test-high,mutation-test-medium"
           fi
 
-
-  stryker-pages-add-or-update:    
+  stryker-pages-add-or-update:
     runs-on: ubuntu-latest
     needs:
-      - stryker-run      
+      - stryker-run
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -541,10 +539,10 @@ jobs:
 
       - name: Move Reports to Branch Folder
         run: |
-           branch_name=${{ github.head_ref }}
-           mkdir -p $branch_name
-           mv ${{ github.workspace }}/stryker-pages/* $branch_name/
-        
+          branch_name=${{ github.head_ref }}
+          mkdir -p $branch_name
+          mv ${{ github.workspace }}/stryker-pages/* $branch_name/
+
       - name: Commit and Push Reports
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -557,11 +555,11 @@ jobs:
           #git commit -m "Add Stryker Mutation Test Report for branch $branch_name"
           #git push origin pages --force
 
-  stryker-pages-create-index:    
+  stryker-pages-create-index:
     runs-on: ubuntu-latest
     needs:
       - stryker-pages-add-or-update
-    steps:          
+    steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
@@ -604,9 +602,9 @@ jobs:
              reports+=("$mutation_run_date|$branch_score|$updated_at|$pull_request|$report_html|$report_md")
           done
           sorted_reports=$(printf "%s\n" "${reports[@]}" | sort)
-          
+
           echo $sorted_reports
-          
+
           json_array="["
 
           while IFS= read -r report; do
@@ -645,17 +643,128 @@ jobs:
           echo "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">" >> index.html
           echo "<title>Mutation Test Reports</title>" >> index.html
           echo "<link href=\"https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css\" rel=\"stylesheet\">" >> index.html
+          echo "<script>
+            document.addEventListener('DOMContentLoaded', function() {
+              let rowsPerPage = 10;
+              let currentPage = 1;
+              const table = document.querySelector('table tbody');
+              const rows = Array.from(table.querySelectorAll('tr'));
+              const pagination = document.querySelector('#pagination');
+              const rowsPerPageSelect = document.querySelector('#rowsPerPage');
+
+              function showPage(page) {
+                currentPage = page;
+                const start = (page - 1) * rowsPerPage;
+                const end = start + rowsPerPage;
+                rows.forEach((row, index) => {
+                  row.style.display = (index >= start && index < end) ? '' : 'none';
+                });
+                updatePagination();
+              }
+
+              function createPagination() {
+                pagination.innerHTML = '';
+                const totalPages = Math.ceil(rows.length / rowsPerPage);
+
+                const prevButton = document.createElement('a');
+                prevButton.href = '#';
+                prevButton.classList.add('relative', 'inline-flex', 'items-center', 'rounded-l-md', 'px-2', 'py-2', 'text-gray-400', 'ring-1', 'ring-inset', 'ring-gray-300', 'hover:bg-gray-50', 'focus:z-20', 'focus:outline-offset-0');
+                prevButton.innerHTML = `
+                  <span class="sr-only">Previous</span>
+                  <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
+                  </svg>
+                `;
+                prevButton.addEventListener('click', (e) => {
+                  e.preventDefault();
+                  if (currentPage > 1) showPage(currentPage - 1);
+                });
+                pagination.appendChild(prevButton);
+
+                for (let i = 1; i <= totalPages; i++) {
+                  const button = document.createElement('a');
+                  button.href = '#';
+                  button.classList.add('relative', 'inline-flex', 'items-center', 'px-4', 'py-2', 'text-sm', 'font-semibold', 'focus:z-20');
+                  button.textContent = i;            
+                  if (i === currentPage) {
+                    button.classList.add('text-white', 'z-10', 'bg-indigo-600', 'focus-visible:outline', 'focus-visible:outline-2', 'focus-visible:outline-offset-2', 'focus-visible:outline-indigo-600');
+                  } else {
+                    button.classList.add('text-gray-900', 'ring-1', 'ring-inset', 'ring-gray-300', 'hover:bg-gray-50', 'focus:outline-offset-0');
+                  }
+                  button.addEventListener('click', () => showPage(i));
+                  pagination.appendChild(button);
+                }
+
+                const nextButton = document.createElement('a');
+                nextButton.href = '#';
+                nextButton.classList.add('relative', 'inline-flex', 'items-center', 'rounded-r-md', 'px-2', 'py-2', 'text-gray-400', 'ring-1', 'ring-inset', 'ring-gray-300', 'hover:bg-gray-50', 'focus:z-20', 'focus:outline-offset-0');
+                nextButton.innerHTML = `
+                  <span class="sr-only">Next</span>
+                  <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+                  </svg>
+                `;
+                nextButton.addEventListener('click', (e) => {
+                  e.preventDefault();
+                  if (currentPage < totalPages) showPage(currentPage + 1);
+                });
+                pagination.appendChild(nextButton);
+              }
+
+              function updatePagination() {
+                createPagination();
+              }
+
+              rowsPerPageSelect.addEventListener('change', function() {
+                rowsPerPage = parseInt(this.value, 10);
+                showPage(1);
+              });
+
+              showPage(1);
+            });          
+          </script>" >> index.html
           echo "</head>" >> index.html
           echo "<body class=\"bg-gray-100 flex justify-center min-h-screen p-6\">" >> index.html
           echo "<div class=\"container mx-auto\">" >> index.html
           echo "<h1 class=\"text-2xl font-bold mb-4\">Mutation Test Reports</h1>" >> index.html
+
+          echo "<div class=\"flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6\">
+            <div class=\"hidden sm:flex sm:flex-1 sm:items-center sm:justify-between\">
+            <div>
+            <label for=\"rowsPerPage\" class=\"mr-2\">Itens por página:</label>
+            <select id=\"rowsPerPage\" class=\"border rounded p-2\">
+              <option value=\"10\">10</option>
+              <option value=\"20\">20</option>
+              <option value=\"50\">50</option>
+              <option value=\"100\">100</option>
+            </select>
+            </div>
+            <div>
+            <nav id=\"pagination\" class=\"isolate inline-flex -space-x-px rounded-md shadow-sm\" aria-label=\"Paginação\" />
+            </div>
+
+            <div>
+            <p class=\"text-sm text-gray-700\">
+            Página
+            <span class=\"font-medium\">1</span>
+            de
+            <span class=\"font-medium\">3</span>
+            / Total de
+            <span class=\"font-medium\">97</span>
+            resultados
+            </p>
+            </div>
+
+            </div>
+          </div>" >> index.html
+
           echo "<table class=\"min-w-full bg-white\">" >> index.html
           echo "<thead>" >> index.html
           echo "<tr>" >> index.html
           echo "<th class=\"py-2 px-4 border-b\">Branch Score</th>" >> index.html
           echo "<th class=\"py-2 px-4 border-b\"><div class=\"flex\">Atualização</div></th>" >> index.html
           echo "<th class=\"py-2 px-4 border-b\"><div class=\"flex\">Pull Request</div></th>" >> index.html
-          
+
           echo "<th class=\"py-2 px-4 border-b\">" >> index.html
           echo "<div class=\"flex\">Relatórios</div>" >> index.html
           echo "<div class=\"flex space-x-4\">" >> index.html
@@ -667,7 +776,7 @@ jobs:
           echo "</tr>" >> index.html
           echo "</thead>" >> index.html
           echo "<tbody>" >> index.html
-          
+
           echo "$json_data" | jq -c '.[]' | while IFS= read -r report; do
             echo "Report: $report"
 
@@ -690,28 +799,28 @@ jobs:
 
             echo "<td class=\"py-2 px-4 border-b\">
           <div class=\"flex space-x-4\">
-          <div><a href=\"report_html\" class="text-blue-500">.html</a></div>
-          <div><a href=\"$report_md\" class="text-blue-500">.md</a></div>
+          <div><a href=\"report_html\" class=\"text-blue-500\">.html</a></div>
+          <div><a href=\"$report_md\" class=\"text-blue-500\">.md</a></div>
           </div></td>" >> index.html
 
             echo "</tr>" >> index.html
           done
-          
+
           echo "</tbody>" >> index.html
-          echo "</table>" >> index.html
+          echo "</table>" >> index.html          
           echo "</div>" >> index.html
           echo "</body>" >> index.html
           echo "</html>" >> index.html
 
           cat index.html
-  
+
       - name: Commit and Push HTML Table
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           #git config --global user.email "github-actions@github.com"
           #git config --global user.name "github-actions" 
-         
+
           #git add index.html
           #git commit -m "Update index.html with mutation reports"
           #git push origin pages --force
