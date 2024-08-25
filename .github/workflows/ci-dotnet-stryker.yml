@@ -595,7 +595,7 @@ jobs:
              formatted_branch=$(echo "$mutation_run_branch" | sed 's/-/--/g')             
              report_dir=$(dirname $file)
 
-             branch_score="https://img.shields.io/badge/$formatted_branch-$formatted_score%-$static_badge_color?logo=github&labelColor=424242"
+             branch_score="https://img.shields.io/badge/$formatted_branch-$formatted_score%25-$static_badge_color?logo=github&labelColor=424242"
              updated_at=$(TZ='America/Sao_Paulo' date -d "$mutation_run_date" +"%d-%m-%Y %H:%M:%S")
              pull_request="$mutation_run_pull"
              report_html="$report_dir/mutation-report.html"
@@ -646,7 +646,7 @@ jobs:
           echo "<title>Mutation Test Reports</title>" >> index.html
           echo "<link href=\"https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css\" rel=\"stylesheet\">" >> index.html
           echo "</head>" >> index.html
-          echo "<body class=\"bg-gray-100 p-6\">" >> index.html
+          echo "<body class=\"bg-gray-100 flex justify-center min-h-screen p-6\">" >> index.html
           echo "<div class=\"container mx-auto\">" >> index.html
           echo "<h1 class=\"text-2xl font-bold mb-4\">Mutation Test Reports</h1>" >> index.html
           echo "<table class=\"min-w-full bg-white\">" >> index.html
@@ -680,15 +680,20 @@ jobs:
             echo "<tr>" >> index.html
             
             echo "<td class=\"border-b\">
-          <div class="py-2 px-4 flex justify-center"><img alt="Static Badge"
-          src="$branch_score">
+          <div class=\"py-2 px-4 flex justify-center\"><img alt=\"Static Badge\"
+          src=\"$branch_score\">
           </div></td>" >> index.html
 
             echo "<td class=\"py-2 px-4 border-b\">$updated_at</td>" >> index.html
 
             echo "<td class=\"py-2 px-4 border-b\"><a href=\"$pull_request\" class=\"text-blue-500\">Veja o Pull</a></td>" >> index.html
 
-            echo "<td class=\"py-2 px-4 border-b\"><a href=\"$report_link\" class=\"text-blue-500\">Veja o relatório</a></td>" >> index.html
+            echo "<td class=\"py-2 px-4 border-b\">
+          <div class=\"flex space-x-4\">
+          <div><a href=\"report_html\" class="text-blue-500">.html</a></div>
+          <div><a href=\"$report_md\" class="text-blue-500">.md</a></div>
+          </div>          
+
             echo "</tr>" >> index.html
           done
           
