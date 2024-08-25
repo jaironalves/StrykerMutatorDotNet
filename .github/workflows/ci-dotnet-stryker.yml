@@ -576,12 +576,12 @@ jobs:
         run: |
           json_files=$(cat stryker_json_files.txt)
           reports=()
-          # for file in $json_files; do
-          #   mutation_run_branch=$(jq -r '.mutation_run_branch' $file)
-          #   mutation_run_pull=$(jq -r '.mutation_run_pull' $file)
-          #   mutation_run_date=$(jq -r '.mutation_run_date' $file)
-          #   mutation_score=$(jq '.mutation_score' $file)
-          #   mutation_score_hint=$(jq -r '.mutation_score_hint' $file)
+          for file in $json_files; do
+             mutation_run_branch=$(jq -r '.mutation_run_branch' $file)
+             mutation_run_pull=$(jq -r '.mutation_run_pull' $file)
+             mutation_run_date=$(jq -r '.mutation_run_date' $file)
+             mutation_score=$(jq '.mutation_score' $file)
+             mutation_score_hint=$(jq -r '.mutation_score_hint' $file)
 
           #   if [ "$mutation_score_hint" == "High" ]; then
           #     static_badge_color="0E8A16"
@@ -604,7 +604,7 @@ jobs:
           #   report_md="$report_dir/mutation-report.md"
             
           #   reports+=("$mutation_run_date|$branch_score|$updated_at|$pull_request|$pull_request|$report_html|$report_md")
-          # done
+          done
           sorted_reports=$(printf "%s\n" "${reports[@]}" | sort)
           
           echo $sorted_reports         
