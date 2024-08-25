@@ -591,11 +591,11 @@ jobs:
                static_badge_color="B60205"
              fi
 
-          #   formatted_score=$(printf "%.2f" "$mutation_score" | sed 's/\./,')
-          #   echo "score ok"
-          #   formatted_branch=$(echo "$mutation_run_branch" | sed 's/-/--/g')
-          #   echo "branch ok"
-          #   report_dir=$(dirname $file)
+             formatted_score=$(printf "%.2f" "$mutation_score" | sed 's/\./,')
+             echo "score ok"
+             formatted_branch=$(echo "$mutation_run_branch" | sed 's/-/--/g')
+             echo "branch ok"
+             report_dir=$(dirname $file)
 
           #   branch_score="https://img.shields.io/badge/$formatted_branch-$formatted_score-$static_badge_color?logo=github&labelColor=424242"
           #   updated_at=$(TZ='America/Sao_Paulo' date -d "$mutation_run_date" +"%d-%m-%Y %H:%M:%S %Z")
