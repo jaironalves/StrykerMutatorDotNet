@@ -593,7 +593,7 @@ jobs:
 
             formatted_score=$(printf "%.2f" "$mutation_score" | sed 's/\./,')
             echo "score ok"
-            formatted_branch=$(echo "$mutation_run_branch" | sed 's/-/--/g')
+            #formatted_branch=$(echo "$mutation_run_branch" | sed 's/-/--/g')
             echo "branch ok"
             report_dir=$(dirname $file)
 
