@@ -592,7 +592,9 @@ jobs:
             fi
 
             formatted_score=$(printf "%.2f" "$mutation_score" | sed 's/\./,')
+            echo "score ok"
             formatted_branch=$(echo "$mutation_run_branch" | sed 's/-/--/g')
+            echo "branch ok"
             report_dir=$(dirname $file)
 
             branch_score="https://img.shields.io/badge/$formatted_branch-$formatted_score-$static_badge_color?logo=github&labelColor=424242"
