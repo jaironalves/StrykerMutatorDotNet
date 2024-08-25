@@ -113,7 +113,7 @@ jobs:
           echo "{
             \"mutation_run\": \"${{ github.run_number }}-${{ github.run_attempt }}\",
             \"mutation_run_branch\": \"$run_branch\",
-            \"mutation_run_pull\": \"$run_pull\",
+            \"mutation_run_pull\": $run_pull,
             \"mutation_run_date\": \"$run_date\",
             \"mutation_score\": $MUTATION_SCORE,
             \"mutation_score_hint\": \"$MUTATION_SCORE_HINT\",
@@ -595,7 +595,7 @@ jobs:
 
              branch_score="https://img.shields.io/badge/$formatted_branch-$formatted_score%25-$static_badge_color?logo=github&labelColor=424242"
              updated_at=$(TZ='America/Sao_Paulo' date -d "$mutation_run_date" +"%d-%m-%Y %H:%M:%S")
-             pull_request="$mutation_run_pull"
+             pull_request="https://github.com/${{ github.repository }}/pull/$mutation_run_pull"
              report_html="$report_dir/mutation-report.html"
              report_md="$report_dir/mutation-report.md"
             
@@ -800,7 +800,7 @@ jobs:
 
             echo "<td class=\"py-2 px-4 border-b\">
           <div class=\"flex space-x-4\">
-          <div><a href=\"report_html\" class=\"text-blue-500\">.html</a></div>
+          <div><a href=\"$report_html\" class=\"text-blue-500\">.html</a></div>
           <div><a href=\"$report_md\" class=\"text-blue-500\">.md</a></div>
           </div></td>" >> index.html
 
