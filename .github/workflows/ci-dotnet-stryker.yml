@@ -108,8 +108,12 @@ jobs:
         run: |
           file_result="${{ github.workspace }}/stryker-results/stryker.json"
           run_date=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          run_branch=$(echo "${{ github.ref }}" | sed 's/refs\/heads\///')
+          run_pull=$(echo "${{ github.event.number }}" | sed 's/refs\/pull\///')
           echo "{
             \"mutation_run\": \"${{ github.run_number }}-${{ github.run_attempt }}\",
+            \"mutation_run_branch\": \"$run_branch\",
+            \"mutation_run_pull\": \"$run_pull\",
             \"mutation_run_date\": \"$run_date\",
             \"mutation_score\": $MUTATION_SCORE,
             \"mutation_score_hint\": \"$MUTATION_SCORE_HINT\",
@@ -567,6 +571,66 @@ jobs:
         run: |
           find feature -type f -name "stryker.json" > stryker_json_files.txt
 
+      - name: Generate JSON data
+        id: generate-json
+        run: |
+          json_files=$(cat stryker_json_files.txt)
+          reports=()
+          for file in $json_files; do
+            mutation_run_branch=$(jq -r '.mutation_run_branch' $file)
+            mutation_run_pr=$(jq -r '.mutation_run_pr' $file)
+            mutation_run_date=$(jq -r '.mutation_run_date' $file)
+            mutation_score=$(jq -r '.mutation_score' $file)
+            mutation_score_hint=$(jq -r '.mutation_score_hint' $file)
+
+            if [ "$MUTATION_SCORE_HINT" == "High" ]; then
+              static_badge_color="0E8A16"
+            elif [ "$MUTATION_SCORE_HINT" == "Medium" ]; then
+              static_badge_color="FDD835"
+            else
+              static_badge_color="B60205"
+            fi
+
+            formatted_score=$(printf "%.2f" "$mutation_score" | sed 's/\./,')
+            formatted_branch=$(echo "$mutation_run_branch" | sed 's/-/--/g')
+            report_dir=$(dirname $file)
+
+            branch_score="https://img.shields.io/badge/$formatted_branch-$formatted_score-$static_badge_color?logo=github&labelColor=424242"
+            updated_at=$(TZ='America/Sao_Paulo' date -d "$mutation_run_date" +"%d-%m-%Y %H:%M:%S %Z")
+            pull_request=$(echo "$mutation_run_pr" | sed 's/.*\///')
+            report_html="$report_dir/mutation-report.html"
+            report_md="$report_dir/mutation-report.md"
+            
+            reports+=("$mutation_run_date|$branch_score|$updated_at|$pull_request|$pull_request|$report_html|$report_md")
+          done
+          sorted_reports=$(printf "%s\n" "${reports[@]}" | sort)
+          
+          echo $sorted_reports
+
+          json_array="["
+
+          for report in $sorted_reports; do
+            branch_score=$(echo $report | cut -d'|' -f2)
+            updated_at=$(echo $report | cut -d'|' -f3)
+            pull_request=$(echo $report | cut -d'|' -f4)
+            report_html=$(echo $report | cut -d'|' -f5)
+            report_md=$(echo $report | cut -d'|' -f6)
+            
+            json_object=$(jq -n \
+              --arg branch_score "$branch_score" \
+              --arg updated_at "$updated_at" \
+              --arg pull_request "$pull_request" \
+              --arg report_html "$report_html" \
+              --arg report_md "$report_md" \
+              '{branch_score: $branch_score, updated_at: $updated_at, pull_request: $pull_request, report_html: $report_html, report_md: $report_md}')
+            
+            json_array+="$json_object,"
+          done                    
+          json_array="${json_array%,}]"
+
+          echo "$json_array" > html-table-data.json
+          cat html-table-data.json
+
       - name: Generate HTML table
         id: generate-html
         run: |
@@ -574,15 +638,44 @@ jobs:
           json_files=$(cat stryker_json_files.txt)
           reports=()
           for file in $json_files; do
+            mutation_run_branch=$(jq -r '.mutation_run_branch' $file)
+            mutation_run_pull=$(jq -r '.mutation_run_pull' $file)
             mutation_run_date=$(jq -r '.mutation_run_date' $file)
             mutation_score=$(jq -r '.mutation_score' $file)
+            mutation_score_hint=$(jq -r '.mutation_score_hint' $file)
+
+            if [ "$MUTATION_SCORE_HINT" == "High" ]; then
+              static_badge_color="0E8A16"
+            elif [ "$MUTATION_SCORE_HINT" == "Medium" ]; then
+              static_badge_color="FDD835"
+            else
+              static_badge_color="B60205"
+            fi
+
+            formatted_score=$(printf "%.2f" "$mutation_score" | sed 's/\./,/')
+            formatted_branch=$(echo "$mutation_run_branch" | sed 's/-/--/g')
             report_dir=$(dirname $file)
-            report_link="$report_dir/mutation-report.html"
-            reports+=("$mutation_run_date|$mutation_score|$report_link")
+
+            branch_score="https://img.shields.io/badge/$formatted_branch-$formatted_score-$static_badge_color?logo=github&labelColor=424242"
+            updated_at=$(TZ='America/Sao_Paulo' date -d "$mutation_run_date" +"%d-%m-%Y %H:%M:%S %Z")
+            pull_request=$(echo "$mutation_run_pull" | sed 's/.*\///')
+            report_html="$report_dir/mutation-report.html"
+            report_md="$report_dir/mutation-report.md"
+            
+            reports+=("$mutation_run_date|$branch_score|$updated_at|$pull_request|$pull_request|$report_html|$report_md")
           done
           sorted_reports=$(printf "%s\n" "${reports[@]}" | sort)
           
           echo $sorted_reports  
+
+          for report in $sorted_reports; do
+            echo "Report: $report"
+            branch_score=$(echo $report | cut -d'|' -f2)
+            updated_at=$(echo $report | cut -d'|' -f3)
+            pull_request=$(echo $report | cut -d'|' -f4)
+            report_html=$(echo $report | cut -d'|' -f5)
+            report_md=$(echo $report | cut -d'|' -f6)           
+          done
 
           echo "<!DOCTYPE html>" > index.html
           echo "<html lang=\"en\">" >> index.html
@@ -598,9 +691,9 @@ jobs:
           echo "<table class=\"min-w-full bg-white\">" >> index.html
           echo "<thead>" >> index.html
           echo "<tr>" >> index.html
-          echo "<th class=\"py-2 px-4 border-b\">Mutation Run Date</th>" >> index.html
-          echo "<th class=\"py-2 px-4 border-b\">Mutation Score</th>" >> index.html
-          echo "<th class=\"py-2 px-4 border-b\">Report Link</th>" >> index.html
+          echo "<th class=\"py-2 px-4 border-b\">Data/Hora</th>" >> index.html
+          echo "<th class=\"py-2 px-4 border-b\">Score</th>" >> index.html
+          echo "<th class=\"py-2 px-4 border-b\">Relatório</th>" >> index.html
           echo "</tr>" >> index.html
           echo "</thead>" >> index.html
           echo "<tbody>" >> index.html
@@ -613,7 +706,7 @@ jobs:
             echo "<tr>" >> index.html
             echo "<td class=\"py-2 px-4 border-b\">$mutation_run_date</td>" >> index.html
             echo "<td class=\"py-2 px-4 border-b\">$mutation_score</td>" >> index.html
-            echo "<td class=\"py-2 px-4 border-b\"><a href=\"$report_link\" class=\"text-blue-500\">$report_link</a></td>" >> index.html
+            echo "<td class=\"py-2 px-4 border-b\"><a href=\"$report_link\" class=\"text-blue-500\">Veja o relatório</a></td>" >> index.html
             echo "</tr>" >> index.html
           done
           
@@ -627,9 +720,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git config --global user.email "github-actions@github.com"
-          git config --global user.name "github-actions" 
+          #git config --global user.email "github-actions@github.com"
+          #git config --global user.name "github-actions" 
          
-          git add index.html
-          git commit -m "Update index.html with mutation reports"
-          git push origin pages --force
+          #git add index.html
+          #git commit -m "Update index.html with mutation reports"
+          #git push origin pages --force
