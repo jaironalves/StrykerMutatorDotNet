@@ -609,7 +609,8 @@ jobs:
           
           json_array="["
 
-          for report in $sorted_reports; do
+          while IFS= read -r report; do
+            echo "Report: $report"
             branch_score=$(echo $report | cut -d'|' -f2)
             updated_at=$(echo $report | cut -d'|' -f3)
             pull_request=$(echo $report | cut -d'|' -f4)
@@ -625,7 +626,8 @@ jobs:
               '{branch_score: $branch_score, updated_at: $updated_at, pull_request: $pull_request, report_html: $report_html, report_md: $report_md}')
             
             json_array+="$json_object,"
-          done                    
+          done <<< "$sorted_reports"
+
           json_array="${json_array%,}]"
 
           echo "$json_array" > html-table-data.json
