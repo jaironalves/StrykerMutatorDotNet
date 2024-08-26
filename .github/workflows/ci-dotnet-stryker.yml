@@ -762,11 +762,11 @@ jobs:
               <div>
                 <p class=\"text-sm text-gray-700\">
                   Página
-                <span class=\"font-medium\">1</span>
+                <span id=\"page\" class=\"font-medium\">...</span>
                   de
-                <span class=\"font-medium\">3</span>
+                <span id=\"page-total\" class=\"font-medium\">...</span>
                   / Total de
-                <span class=\"font-medium\">97</span>
+                <span id=\"result-total\" class=\"font-medium\">...</span>
                  resultados
                 </p>
               </div>
