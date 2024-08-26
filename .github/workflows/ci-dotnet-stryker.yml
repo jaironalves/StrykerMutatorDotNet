@@ -631,25 +631,31 @@ jobs:
           echo "$json_array" > html-table-data.json
           cat html-table-data.json
 
-      - name: Generate HTML table
-        id: generate-html
+      - name: Generate HTML Index
+        id: generate-html-index
         run: |
           json_data=$(cat html-table-data.json)
 
-          echo "<!DOCTYPE html>" > index.html
-          echo "<html lang=\"en\">" >> index.html
-          echo "<head>" >> index.html
-          echo "<meta charset=\"UTF-8\">" >> index.html
-          echo "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">" >> index.html
-          echo "<title>Mutation Test Reports</title>" >> index.html
-          echo "<link href=\"https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css\" rel=\"stylesheet\">" >> index.html
+          echo "<!DOCTYPE html>
+          <html lang=\"pt-br\">
+          <head>
+          <meta charset=\"UTF-8\">
+          <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
+          <title>Mutation Test Reports</title>
+          <script src=\"https://cdn.tailwindcss.com\"></script>" >> index.html
+
           echo "<script>
             document.addEventListener('DOMContentLoaded', function() {
               let rowsPerPage = 20;
               let currentPage = 1;
+              let totalPages = 1;
+              
               const table = document.querySelector('table tbody');
               const rows = Array.from(table.querySelectorAll('tr'));
               const pagination = document.querySelector('#pagination');
+              const paginationPage = document.querySelector('#page');
+              const paginationPageTotal = document.querySelector('#page-total');
+              const paginationResultTotal = document.querySelector('#result-total');
               const rowsPerPageSelect = document.querySelector('#rowsPerPage');
 
               function showPage(page) {
@@ -659,20 +665,24 @@ jobs:
                 rows.forEach((row, index) => {
                   row.style.display = (index >= start && index < end) ? '' : 'none';
                 });
+                totalPages = Math.ceil(rows.length / rowsPerPage);
+                
                 updatePagination();
               }
 
-              function createPagination() {
+              function updatePagination() {
+                paginationPage.textContent = currentPage;
+                paginationPageTotal.textContent = totalPages;
+                paginationResultTotal.textContent = rows.length;
+              
                 pagination.innerHTML = '';
-                const totalPages = Math.ceil(rows.length / rowsPerPage);
-
                 const prevButton = document.createElement('a');
                 prevButton.href = '#';
                 prevButton.classList.add('relative', 'inline-flex', 'items-center', 'rounded-l-md', 'px-2', 'py-2', 'text-gray-400', 'ring-1', 'ring-inset', 'ring-gray-300', 'hover:bg-gray-50', 'focus:z-20', 'focus:outline-offset-0');
 
-                let prevInnerHTML='<span class=\"sr-only\">Anterior</span>';
-                prevInnerHTML+='<svg class=\"h-5 w-5\" viewBox=\"0 0 20 20\" fill=\"currentColor\" aria-hidden=\"true\">';
-                prevInnerHTML+='<path fill-rule=\"evenodd\" d=\"M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z\" clip-rule=\"evenodd\" />';
+                let prevInnerHTML='<span class="sr-only">Anterior</span>';
+                prevInnerHTML+='<svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">';
+                prevInnerHTML+='<path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />';
                 prevInnerHTML+='</svg>';
                 prevButton.innerHTML = prevInnerHTML;
 
@@ -699,9 +709,9 @@ jobs:
                 const nextButton = document.createElement('a');
                 nextButton.href = '#';
                 nextButton.classList.add('relative', 'inline-flex', 'items-center', 'rounded-r-md', 'px-2', 'py-2', 'text-gray-400', 'ring-1', 'ring-inset', 'ring-gray-300', 'hover:bg-gray-50', 'focus:z-20', 'focus:outline-offset-0');
-                let nextInnerHTML='<span class=\"sr-only\">Próxima</span>';
-                nextInnerHTML+='<svg class=\"h-5 w-5\" viewBox=\"0 0 20 20\" fill=\"currentColor\" aria-hidden=\"true\">';
-                nextInnerHTML+='<path fill-rule=\"evenodd\" d=\"M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z\" clip-rule=\"evenodd\" />';
+                let nextInnerHTML='<span class="sr-only">Próxima</span>';
+                nextInnerHTML+='<svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">';
+                nextInnerHTML+='<path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />';
                 nextInnerHTML+='</svg>';
                 
                 nextButton.innerHTML = nextInnerHTML;	
@@ -710,56 +720,58 @@ jobs:
                   if (currentPage < totalPages) showPage(currentPage + 1);
                 });
                 pagination.appendChild(nextButton);
-              }
-
-              function updatePagination() {
-                createPagination();
-              }
+              }   
 
               rowsPerPageSelect.addEventListener('change', function() {
                 rowsPerPage = parseInt(this.value, 10);
                 showPage(1);
               });
-
+              
+              rowsPerPageSelect.value = rowsPerPage;
               showPage(1);
             });          
           </script>" >> index.html
-          echo "</head>" >> index.html
-          echo "<body class=\"bg-gray-100 flex justify-center min-h-screen p-6\">" >> index.html
-          echo "<div class=\"container mx-auto\">" >> index.html
-          echo "<h1 class=\"text-2xl font-bold mb-4\">Mutation Test Reports</h1>" >> index.html
 
-          echo "<div class=\"flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6\">
-            <div class=\"hidden sm:flex sm:flex-1 sm:items-center sm:justify-between\">
-            <div>
-            <label for=\"rowsPerPage\" class=\"mr-2\">Itens por página:</label>
-            <select id=\"rowsPerPage\" class=\"border rounded p-2\">
-              <option value=\"10\">10</option>
-              <option value=\"20\">20</option>
-              <option value=\"50\">50</option>
-              <option value=\"100\">100</option>
-            </select>
-            </div>
-            <div>
-            <nav id=\"pagination\" class=\"isolate inline-flex -space-x-px rounded-md shadow-sm\" aria-label=\"Paginação\" />
-            </div>
-
-            <div>
-            <p class=\"text-sm text-gray-700\">
-            Página
-            <span class=\"font-medium\">1</span>
-            de
-            <span class=\"font-medium\">3</span>
-            / Total de
-            <span class=\"font-medium\">97</span>
-            resultados
-            </p>
-            </div>
-
-            </div>
-          </div>" >> index.html
+          echo "</head>
+          <body class=\"bg-gray-100 flex justify-center min-h-screen p-6\">
+          <div class=\"container mx-auto\">
+          <h1 class=\"text-2xl font-bold mb-4\">Mutation Test Reports</h1>" >> index.html
 
           echo "<table class=\"min-w-full bg-white\">" >> index.html
+
+          echo "<caption class=\"caption-top\">
+          <div class=\"flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6\">
+            <div>
+            <nav id=\"pagination\" class=\"isolate inline-flex -space-x-px rounded-md shadow-sm\" aria-label=\"Paginação\" />
+            </div>   
+          
+            <div>            
+              <div class=\"flex items-center justify-around mb-6\">
+                <label for=\"rowsPerPage\" class=\"block text-md font-medium text-gray-900 dark:text-white\">Itens por página:</label>
+                <select id=\"rowsPerPage\" class=\"block text-md text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500\">
+                  <option value=\"10\">10</option>
+                  <option value=\"20\">20</option>
+                  <option value=\"50\">50</option>
+                  <option value=\"100\">100</option>
+                </select>
+              </div>
+              <div>
+                <p class=\"text-sm text-gray-700\">
+                  Página
+                <span class=\"font-medium\">1</span>
+                  de
+                <span class=\"font-medium\">3</span>
+                  / Total de
+                <span class=\"font-medium\">97</span>
+                 resultados
+                </p>
+              </div>
+            </div>
+
+          </div>
+          </caption>" >> index.html
+
+
           echo "<thead>" >> index.html
           echo "<tr>" >> index.html
           echo "<th class=\"py-2 px-4 border-b\">Branch Score</th>" >> index.html
