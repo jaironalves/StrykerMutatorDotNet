@@ -629,12 +629,16 @@ jobs:
           json_array="${json_array%,}]"
 
           echo "$json_array" > html-table-data.json
-          cat html-table-data.json
+          cat html-table-data.json          
 
       - name: Generate HTML Index
         id: generate-html-index
         run: |
           json_data=$(cat html-table-data.json)
+
+          if [ -f index.html ]; then
+            > index.html
+          fi  
 
           echo "<!DOCTYPE html>
           <html lang=\"pt-br\">
