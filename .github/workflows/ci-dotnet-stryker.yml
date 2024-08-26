@@ -671,14 +671,17 @@ jobs:
                 });
                 totalPages = Math.ceil(rows.length / rowsPerPage);
                 
-                updatePagination();
+                updatePaginationNavigation();
+                updatePaginationCounters();
               }
 
-              function updatePagination() {
+              function updatePaginationCounters() {
                 paginationPage.textContent = currentPage;
                 paginationPageTotal.textContent = totalPages;
                 paginationResultTotal.textContent = rows.length;
-              
+              }
+
+              function updatePaginationNavigation() {
                 pagination.innerHTML = '';
                 const prevButton = document.createElement('a');
                 prevButton.href = '#';
