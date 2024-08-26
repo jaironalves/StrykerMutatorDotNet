@@ -602,8 +602,8 @@ jobs:
             report_md="$report_dir/mutation-report.md"
 
             json_object=$(jq -n \
-             --arg branch "$mutation_run_branch" \ 
-             --arg update_at_utc "$mutation_run_date" \ 
+             --arg branch "$mutation_run_branch" \
+             --arg update_at_utc "$mutation_run_date" \
              --arg branch_score "$branch_score" \
              --arg updated_at "$updated_at" \
              --arg pull_request "$pull_request" \
