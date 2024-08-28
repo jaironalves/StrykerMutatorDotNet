@@ -609,9 +609,10 @@ jobs:
              --arg branch_score "$branch_score" \
              --arg updated_at "$updated_at" \
              --arg pull_request "$pull_request" \
+             --arg pull_request_number "$mutation_run_pull" \
              --arg report_html "$report_html" \
              --arg report_md "$report_md" \
-             '{branch: $branch, update_at_utc: $update_at_utc, branch_score: $branch_score, updated_at: $updated_at, pull_request: $pull_request, report_html: $report_html, report_md: $report_md}')
+             '{branch: $branch, update_at_utc: $update_at_utc, branch_score: $branch_score, updated_at: $updated_at, pull_request: $pull_request, pull_request_number: $pull_request_number, report_html: $report_html, report_md: $report_md}')
             
              json_array+="$json_object,"
           done
@@ -883,6 +884,7 @@ jobs:
             branch_score=$(echo "$report" | jq -r '.branch_score')
             updated_at=$(echo "$report" | jq -r '.updated_at')
             pull_request=$(echo "$report" | jq -r '.pull_request')
+            pull_request_number=$(echo "$report" | jq '.pull_request_number')
             report_html=$(echo "$report" | jq -r '.report_html')
             report_md=$(echo "$report" | jq -r '.report_md')
 
@@ -896,7 +898,7 @@ jobs:
 
             echo "<td class=\"py-2 px-4 border-b\">$updated_at</td>" >> index.html
 
-            echo "<td class=\"py-2 px-4 border-b\"><a href=\"$pull_request\" class=\"text-blue-500\">Veja o Pull</a></td>" >> index.html
+            echo "<td class=\"py-2 px-4 border-b\"><a href=\"$pull_request\" class=\"text-blue-500\">PR #$pull_request_number</a></td>" >> index.html
 
             echo "<td class=\"py-2 px-4 border-b\">
           <div class=\"flex space-x-4\">
