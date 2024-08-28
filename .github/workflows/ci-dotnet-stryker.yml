@@ -531,6 +531,7 @@ jobs:
       - name: Move Reports to Pages
         run: |
           mv ${{ github.workspace }}/stryker-results/reports/mutation-report.html ${{ github.workspace }}/stryker-pages/
+          mv ${{ github.workspace }}/stryker-results/reports/mutation-report.md ${{ github.workspace }}/stryker-pages/
           mv ${{ github.workspace }}/stryker-results/stryker.json ${{ github.workspace }}/stryker-pages/
 
       # - name: Checkout gh-pages branch
