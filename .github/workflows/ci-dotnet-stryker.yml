@@ -631,7 +631,7 @@ jobs:
             > index.html
           fi
 
-          repository_name=$(echo "${{ github.repository }}"
+          repository_name=$(echo "${{ github.repository }})"
           
           echo "<!DOCTYPE html>
           <html lang=\"pt-br\">
