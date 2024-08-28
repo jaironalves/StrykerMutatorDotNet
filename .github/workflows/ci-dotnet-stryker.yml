@@ -629,14 +629,17 @@ jobs:
 
           if [ -f index.html ]; then
             > index.html
-          fi  
+          fi
 
+          repository_name=$(echo "${{ github.repository }}"
+          
           echo "<!DOCTYPE html>
           <html lang=\"pt-br\">
           <head>
           <meta charset=\"UTF-8\">
           <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
-          <title>Mutation Test Reports</title>
+          <title>Mutation Test Reports - $repository_name</title>
+          <link rel=\"icon\" href=\"https://github.githubassets.com/favicons/favicon.svg\" type=\"image/svg+xml\">
           <script src=\"https://cdn.tailwindcss.com\"></script>" >> index.html
 
           echo "<script>
