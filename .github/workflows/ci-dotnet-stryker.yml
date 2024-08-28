@@ -609,7 +609,7 @@ jobs:
              --arg branch_score "$branch_score" \
              --arg updated_at "$updated_at" \
              --arg pull_request "$pull_request" \
-             --arg pull_request_number "$mutation_run_pull" \
+             --argjson pull_request_number "$mutation_run_pull" \
              --arg report_html "$report_html" \
              --arg report_md "$report_md" \
              '{branch: $branch, update_at_utc: $update_at_utc, branch_score: $branch_score, updated_at: $updated_at, pull_request: $pull_request, pull_request_number: $pull_request_number, report_html: $report_html, report_md: $report_md}')
