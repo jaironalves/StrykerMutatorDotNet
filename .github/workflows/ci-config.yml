@@ -1,0 +1,78 @@
+name: CI Config
+
+on:
+  workflow_call:
+    inputs:
+      config-path:       
+        type: string
+        default: '.ci-github.yml'      
+    secrets:
+      token:
+        required: true
+
+jobs:
+  config-parse:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+  
+    - name: Read yaml ci github
+      id: yaml-ci-github
+      run: |
+          working_dir=$(yq -o p '.app-build.working-dir' "${{ inputs.config-path }}")
+          version=$(yq -o p '.app-build.version' "${{ inputs.config-path }}")
+          echo "build-working-dir=$working_dir" >> "$GITHUB_OUTPUT"
+          echo "build-version=$version" >> "$GITHUB_OUTPUT"
+
+    - name: Show GitHub output
+      run: |
+         echo "${{ steps.yaml-ci-github.outputs.build-working-dir }}"
+         echo "${{ steps.yaml-ci-github.outputs.build-version }}"
+
+    - uses: ./.github/actions/yaml-parser
+      id: yaml-parser      
+      with:
+        yaml-file-path: ${{ inputs.config-path }}
+        
+    #- name: Read config as properties
+    #  id: read-props
+    #  uses: mikefarah/yq@master
+    #  with:
+    #    cmd: yq -o=props '... comments = ""' ${{ inputs.config-path }}
+    #   
+    #- name: Set GitHub output
+    #  id: set-github-output
+    #  run: |          
+    #      mapfile -t arr <<< "${{ steps.read-props.outputs.result }}" 
+    #      for propAndValue in "${arr[@]}"
+    #        do
+    #          # Copy the string up to the character =
+    #          prop="${propAndValue%% =*}"
+    #
+    #          # Trim the result
+    #          propTrim="${prop#"${prop%%[![:space:]]*}"}"
+    #          propTrim="${propTrim%"${propTrim##*[![:space:]]}"}"
+    #
+    #          # Replace '.' with '-'
+    #          # This is to avoid issues with GitHub output
+    #          propTrim=${propTrim//./-}
+    #
+    #          # Get the value after the character = 
+    #          value="${propAndValue#*=}"
+    #
+    #          # Trim the result
+    #          valueTrim="${value#"${value%%[![:space:]]*}"}"
+    #          valueTrim="${valueTrim%"${valueTrim##*[![:space:]]}"}"
+    #            
+    #          echo "$propTrim=$valueTrim" >> "$GITHUB_OUTPUT"
+    #        done
+
+    - name: Show GitHub outputs
+      run: |
+          echo "$GITHUB_OUTPUT"
+          echo "${{ steps.yaml-parser.outputs.config_result }}"
+
+    - name: Show GitHub outputs 02
+      run: |
+          echo "${{ toJson(steps.yaml-parser.outputs) }}"

@@ -4,12 +4,48 @@ on:
   push:
     branches: 
       - 'feature/**'
- 
+
+permissions:
+  pull-requests: write
+  contents: write
+  pages: write
+
 jobs:
-  ci-dotnet:
-    uses: ./.github/workflows/ci-dotnet.yml
-    with:
-      dotnet-version: 8.x
-      working-directory: ./app
-    secrets:
-      token: ${{ secrets.GITHUB_TOKEN }}
+  ci-config:
+    uses: ./.github/workflows/ci-config-v2.yml  
+
+  #ci-dotnet-stryker:
+  #  uses: ./.github/workflows/ci-dotnet-stryker.yml
+  #  secrets: inherit
+
+  get-prnumber:
+    needs: ci-config
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4 
+
+      - name: Get PR number
+        id: prnumber
+        #run: echo "PR_NUMBER=$(echo $GITHUB_REF | cut -d'/' -f3)" >> $GITHUB_ENV
+        run: echo "PR_NUMBER=$(gh pr view --json number -q .number || echo "")" >> $GITHUB_ENV
+        env: 
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Show PR number
+        run: echo $PR_NUMBER  
+
+  show-outputs:
+      needs: ci-config
+      runs-on: ubuntu-latest
+      steps:  
+        - name: Show GitHub outputs 02
+          run: |
+            echo '${{ toJson(needs.ci-config.outputs) }}'
+  #ci-dotnet:
+  #  uses: ./.github/workflows/ci-dotnet.yml
+  #  with:
+  #    dotnet-version: 8.x
+  #    working-directory: ./app
+  #  secrets:
+  #    token: ${{ secrets.GITHUB_TOKEN }}
