@@ -573,7 +573,7 @@ jobs:
         id: generate-json
         run: |
           json_files=$(cat stryker_json_files.txt)
-          
+
           json_array="["
 
           for file in $json_files; do
@@ -616,9 +616,9 @@ jobs:
           json_array="${json_array%,}]"
 
           sorted_json=$(echo "$json_array" | jq 'sort_by(if .branch == "develop" then "9999-99-99T99:99:99Z" else .update_at_utc end) | reverse')
-          
+
           echo "$sorted_json" > html-table-data.json
-          cat html-table-data.json          
+          cat html-table-data.json
 
       - name: Generate HTML Index
         id: generate-html-index
@@ -642,6 +642,7 @@ jobs:
               let rowsPerPage = 20;
               let currentPage = 1;
               let totalPages = 1;
+              let paginationSlots = 7;
               
               const table = document.querySelector('table tbody');
               const rows = Array.from(table.querySelectorAll('tr'));
@@ -660,7 +661,7 @@ jobs:
                 });
                 totalPages = Math.ceil(rows.length / rowsPerPage);
                 
-                updatePaginationNavigation();
+                updatePagination();
                 updatePaginationCounters();
               }
 
@@ -670,8 +671,9 @@ jobs:
                 paginationResultTotal.textContent = rows.length;
               }
 
-              function updatePaginationNavigation() {
+              function updatePagination() {
                 pagination.innerHTML = '';
+
                 const prevButton = document.createElement('a');
                 prevButton.href = '#';
                 prevButton.classList.add('relative', 'inline-flex', 'items-center', 'rounded-l-md', 'px-2', 'py-2', 'text-gray-400', 'ring-1', 'ring-inset', 'ring-gray-300', 'hover:bg-gray-50', 'focus:z-20', 'focus:outline-offset-0');
@@ -682,25 +684,42 @@ jobs:
                 prevInnerHTML+='</svg>';
                 prevButton.innerHTML = prevInnerHTML;
 
-                prevButton.addEventListener('click', (e) => {
-                  e.preventDefault();
-                  if (currentPage > 1) showPage(currentPage - 1);
-                });
+                if (currentPage === 1) {
+                  prevButton.classList.add('cursor-not-allowed', 'opacity-50');
+                  prevButton.setAttribute('aria-disabled', 'true');
+                  prevButton.setAttribute('disabled', 'true');
+                } else {
+                  prevButton.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (currentPage > 1) showPage(currentPage - 1);
+                  });
+                }
                 pagination.appendChild(prevButton);
 
-                for (let i = 1; i <= totalPages; i++) {
-                  const button = document.createElement('a');
-                  button.href = '#';
-                  button.classList.add('relative', 'inline-flex', 'items-center', 'px-4', 'py-2', 'text-sm', 'font-semibold', 'focus:z-20');
-                  button.textContent = i;            
-                  if (i === currentPage) {
-                    button.classList.add('text-white', 'z-10', 'bg-indigo-600', 'focus-visible:outline', 'focus-visible:outline-2', 'focus-visible:outline-offset-2', 'focus-visible:outline-indigo-600');
-                  } else {
-                    button.classList.add('text-gray-900', 'ring-1', 'ring-inset', 'ring-gray-300', 'hover:bg-gray-50', 'focus:outline-offset-0');
+                let paginationPages = calculatePaginationPages(totalPages, currentPage, paginationSlots);
+
+                paginationPages.forEach(element => {
+                  if (typeof element === 'number') {
+                    const button = document.createElement('a');
+                    button.href = '#';
+                    button.classList.add('relative', 'inline-flex', 'items-center', 'px-4', 'py-2', 'text-sm', 'font-semibold', 'focus:z-20');
+                    button.textContent = element;
+
+                    if (element === currentPage) {
+                      button.classList.add('text-white', 'z-10', 'bg-indigo-600', 'focus-visible:outline', 'focus-visible:outline-2', 'focus-visible:outline-offset-2', 'focus-visible:outline-indigo-600');
+                    } else {
+                      button.classList.add('text-gray-900', 'ring-1', 'ring-inset', 'ring-gray-300', 'hover:bg-gray-50', 'focus:outline-offset-0');
+                    }
+
+                    button.addEventListener('click', () => showPage(element));
+                    pagination.appendChild(button);
+                  } else if (element === '...') {
+                    const span = document.createElement('span');
+                    span.textContent = element;
+                    span.classList.add('relative', 'inline-flex', 'items-center', 'px-4', 'py-2', 'text-sm', 'font-semibold', 'text-gray-700', 'ring-1', 'ring-inset', 'ring-gray-300', 'focus:outline-offset-0');
+                    pagination.appendChild(span);
                   }
-                  button.addEventListener('click', () => showPage(i));
-                  pagination.appendChild(button);
-                }
+                });
 
                 const nextButton = document.createElement('a');
                 nextButton.href = '#';
@@ -708,15 +727,82 @@ jobs:
                 let nextInnerHTML='<span class=\"sr-only\">Próxima</span>';
                 nextInnerHTML+='<svg class=\"h-5 w-5\" viewBox=\"0 0 20 20\" fill=\"currentColor\" aria-hidden=\"true\">';
                 nextInnerHTML+='<path fill-rule=\"evenodd\" d=\"M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z\" clip-rule=\"evenodd\" />';
-                nextInnerHTML+='</svg>';
-                
+                nextInnerHTML+='</svg>';                
                 nextButton.innerHTML = nextInnerHTML;	
-                nextButton.addEventListener('click', (e) => {
-                  e.preventDefault();
-                  if (currentPage < totalPages) showPage(currentPage + 1);
-                });
+
+                if (currentPage === totalPages) {
+                  nextButton.classList.add('cursor-not-allowed', 'opacity-50');
+                  nextButton.setAttribute('aria-disabled', 'true');
+                  nextButton.setAttribute('disabled', 'true');
+                } else {
+                  nextButton.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (currentPage < totalPages) showPage(currentPage + 1);
+                  });
+                }
                 pagination.appendChild(nextButton);
-              }   
+              }
+
+              function calculatePaginationPages(paginationPages, paginationPage, paginationSlotPages = 7
+                , paginationTotalFixedPageStart = 1, paginationTotalFixedPageEnd = 1) {
+                const pages = [];
+
+                if (paginationPages <= paginationSlotPages) {
+                  for (let i = 1; i <= paginationPages; i++) {
+                    pages.push(i);
+                  }
+                  return pages;
+                }
+
+                let totalPages = paginationPages;
+                let currentPage = paginationPage;
+                let pagesSlots = paginationSlotPages;
+                let fixedPagesStart = paginationTotalFixedPageStart;
+                let fixedPagesEnd = paginationTotalFixedPageEnd;
+                let oneEllipsis = 1;
+
+                let pagesToCompleteSequence = pagesSlots - fixedPagesStart - fixedPagesEnd - oneEllipsis;
+
+                let isCompleteSequenceStart = currentPage - pagesToCompleteSequence <= 0;
+                let isCompleteSequenceEnd = currentPage + pagesToCompleteSequence > totalPages;
+                let isMiddlePages = !(isCompleteSequenceEnd || isCompleteSequenceStart);
+
+                let pagesStartTotal = fixedPagesStart;
+                let pagesEndStart = totalPages - fixedPagesEnd + 1;
+
+                if (isCompleteSequenceStart) {
+                  pagesStartTotal += pagesToCompleteSequence;
+                } else if (isCompleteSequenceEnd) {
+                  pagesEndStart -= pagesToCompleteSequence;
+                }
+
+                for (let i = 1; i <= pagesStartTotal; i++) {
+                  pages.push(i);
+                }
+
+                if (isMiddlePages) {
+                  let pagesTotalMiddle = pagesSlots - fixedPagesStart - fixedPagesEnd - (oneEllipsis * 2);
+                  let pagesAround = Math.floor((pagesTotalMiddle - 1) / 2);
+
+                  pages.push('...');
+
+                  let middleStart = currentPage - pagesAround;
+
+                  for (let i = middleStart; i <= middleStart + pagesTotalMiddle - 1; i++) {
+                    pages.push(i);
+                  }
+
+                  pages.push('...');
+                } else {
+                  pages.push('...');
+                }
+
+                for (let i = pagesEndStart; i <= totalPages; i++) {
+                  pages.push(i);
+                }
+
+                return pages;
+              }
 
               rowsPerPageSelect.addEventListener('change', function() {
                 rowsPerPage = parseInt(this.value, 10);
@@ -740,7 +826,7 @@ jobs:
             <div>
             <nav id=\"pagination\" class=\"isolate inline-flex -space-x-px rounded-md shadow-sm\" aria-label=\"Paginação\" />
             </div>   
-          
+
             <div>            
               <div class=\"flex items-center justify-around mb-6\">
                 <label for=\"rowsPerPage\" class=\"block text-md font-medium text-gray-900 dark:text-white\">Itens por página:</label>
